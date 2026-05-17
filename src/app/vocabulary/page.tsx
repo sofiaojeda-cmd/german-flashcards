@@ -81,6 +81,9 @@ function formatDueDate(dueDate: number): string {
 
 // ── Page ──────────────────────────────────────────────────────────
 
+const ARROW_W = 28;
+const PEEK_COLORS = ["#c88818", "#b07010", "#985e0c"] as const;
+
 export default function VocabularyPage() {
   const router = useRouter();
   const [rows, setRows] = React.useState<VocabRow[]>([]);
@@ -90,6 +93,45 @@ export default function VocabularyPage() {
   const [activeTab, setActiveTab] = React.useState<Tab>("all");
   const [activeTopic, setActiveTopic] = React.useState("all");
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
+
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(false);
+
+  const updateScrollState = React.useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  }, []);
+
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    const ro = new ResizeObserver(updateScrollState);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      ro.disconnect();
+    };
+  }, [updateScrollState]);
+
+  // Scroll active tab into view whenever activeTopic changes
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const active = el.querySelector<HTMLElement>("[data-active='true']");
+    if (active) active.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }, [activeTopic]);
+
+  function scrollTabsLeft() {
+    scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+  }
+  function scrollTabsRight() {
+    scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+  }
 
   // 150ms search debounce
   React.useEffect(() => {
@@ -302,30 +344,81 @@ export default function VocabularyPage() {
           {topics.length > 0 && (
             <div
               style={{
-                display: "flex",
-                alignItems: "flex-end",
-                gap: "2px",
-                overflowX: "auto",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
                 position: "relative",
                 zIndex: 1,
                 marginBottom: "-3px",
               }}
             >
-              <PixelFolderTab
-                label="All topics"
-                active={activeTopic === "all"}
-                onClick={() => switchTopic("all")}
-              />
-              {topics.map((topic) => (
-                <PixelFolderTab
-                  key={topic}
-                  label={capitalize(topic)}
-                  active={activeTopic === topic}
-                  onClick={() => switchTopic(topic)}
+              {/* Left arrow */}
+              {canScrollLeft && (
+                <TabArrowButton
+                  direction="left"
+                  onClick={scrollTabsLeft}
+                  style={{ position: "absolute", left: 0, bottom: 0, zIndex: 3 }}
                 />
-              ))}
+              )}
+
+              {/* Scroll strip */}
+              <div
+                ref={scrollRef}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: "2px",
+                  overflowX: "auto",
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
+                  paddingLeft: canScrollLeft ? `${ARROW_W + 4}px` : 0,
+                  paddingRight: canScrollRight ? `${ARROW_W + 4 + 40}px` : 0,
+                }}
+              >
+                <PixelFolderTab
+                  label="All topics"
+                  active={activeTopic === "all"}
+                  onClick={() => switchTopic("all")}
+                />
+                {topics.map((topic) => (
+                  <PixelFolderTab
+                    key={topic}
+                    label={capitalize(topic)}
+                    active={activeTopic === topic}
+                    onClick={() => switchTopic(topic)}
+                  />
+                ))}
+              </div>
+
+              {/* Peek stack + right arrow */}
+              {canScrollRight && (
+                <>
+                  {/* Stacked peek tabs — darker gold tints suggesting more tabs behind */}
+                  <div
+                    aria-hidden
+                    style={{ position: "absolute", right: ARROW_W, bottom: 0, zIndex: 2, pointerEvents: "none" }}
+                  >
+                    {PEEK_COLORS.map((color, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          position: "absolute",
+                          right: i * 6,
+                          bottom: 0,
+                          width: 20,
+                          height: 32 + i * 2,
+                          backgroundColor: color,
+                          border: "3px solid var(--border-dark)",
+                          borderBottom: "none",
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <TabArrowButton
+                    direction="right"
+                    onClick={scrollTabsRight}
+                    style={{ position: "absolute", right: 0, bottom: 0, zIndex: 3 }}
+                  />
+                </>
+              )}
             </div>
           )}
 
@@ -370,6 +463,68 @@ export default function VocabularyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Tab scroll arrow button ───────────────────────────────────────
+
+function TabArrowButton({
+  direction,
+  onClick,
+  style,
+}: {
+  direction: "left" | "right";
+  onClick: () => void;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={direction === "left" ? "Scroll tabs left" : "Scroll tabs right"}
+      style={{
+        width: `${ARROW_W}px`,
+        height: "32px",
+        backgroundColor: "var(--folder-tab-inactive)",
+        border: "3px solid var(--border-dark)",
+        borderBottom: "none",
+        boxShadow:
+          "inset 1px 1px 0 rgba(255,255,255,0.15), inset -1px -1px 0 rgba(0,0,0,0.20)",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 0,
+        flexShrink: 0,
+        ...style,
+      }}
+    >
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        fill="var(--text-primary)"
+        shapeRendering="crispEdges"
+        aria-hidden
+      >
+        {direction === "left" ? (
+          <>
+            <rect x="8" y="2" width="2" height="2" />
+            <rect x="6" y="4" width="2" height="2" />
+            <rect x="4" y="5" width="2" height="2" />
+            <rect x="6" y="7" width="2" height="2" />
+            <rect x="8" y="9" width="2" height="2" />
+          </>
+        ) : (
+          <>
+            <rect x="2" y="2" width="2" height="2" />
+            <rect x="4" y="4" width="2" height="2" />
+            <rect x="6" y="5" width="2" height="2" />
+            <rect x="4" y="7" width="2" height="2" />
+            <rect x="2" y="9" width="2" height="2" />
+          </>
+        )}
+      </svg>
+    </button>
   );
 }
 

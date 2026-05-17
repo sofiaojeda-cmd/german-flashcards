@@ -12,6 +12,7 @@ export function PixelFolderTab({ label, active, onClick }: PixelFolderTabProps) 
   return (
     <button
       onClick={onClick}
+      data-active={String(active)}
       style={{
         position: "relative",
         height: active ? "36px" : "32px",
