@@ -8,9 +8,8 @@ const MARGIN_X = 52;
 const CONTENT_LEFT = 68;
 const BINDER_CENTER_X = 20;
 
-// Paper edge colors — darker tints of the paper base (#d9b48a)
-const BORDER_COLOR  = "#c49d78"; // ~15% darker, warm tan — also used as fold face
-const FOLD_SHADOW   = "#a87d55"; // ~15% darker still — fold crease/underside
+// Paper edge color — darker tint of the paper base (#d9b48a)
+const BORDER_COLOR = "#c49d78"; // ~15% darker, warm tan — notebook border
 
 export function PixelNotebookPage({ children }: PixelNotebookPageProps) {
   return (
@@ -88,60 +87,6 @@ export function PixelNotebookPage({ children }: PixelNotebookPageProps) {
         </div>
       ))}
 
-      {/*
-        Page corner details — top-right and bottom-right only (left edge is the bound spine).
-        12×12 SVG, 2px per pixel (6×6 grid). Stepped diagonal suggesting a slight page lift.
-        F = fold face (#c49d78)   S = fold shadow (#a87d55)   . = transparent
-
-        Top-right:          Bottom-right:
-        . . . . F S         S F . . . .
-        . . . F S .         . S F . . .
-        . . F S . .         . . S F . .
-        . F S . . .         . . . S F .
-        F S . . . .         . . . . S F
-        S . . . . .         . . . . F S  ← bottom-left of SVG = bottom-right of page
-      */}
-      <svg
-        aria-hidden
-        width="12" height="12"
-        viewBox="0 0 12 12"
-        shapeRendering="crispEdges"
-        style={{ position: "absolute", top: 0, right: 0, pointerEvents: "none", display: "block" }}
-      >
-        {/* Top-right corner — fold crease from top-right toward center */}
-        <rect x="8"  y="0"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="10" y="0"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="6"  y="2"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="8"  y="2"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="4"  y="4"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="6"  y="4"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="2"  y="6"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="4"  y="6"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="0"  y="8"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="2"  y="8"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="0"  y="10" width="2" height="2" fill={FOLD_SHADOW}  />
-      </svg>
-
-      <svg
-        aria-hidden
-        width="12" height="12"
-        viewBox="0 0 12 12"
-        shapeRendering="crispEdges"
-        style={{ position: "absolute", bottom: 0, right: 0, pointerEvents: "none", display: "block" }}
-      >
-        {/* Bottom-right corner — mirror of top-right along horizontal axis */}
-        <rect x="0"  y="0"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="0"  y="2"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="2"  y="2"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="2"  y="4"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="4"  y="4"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="4"  y="6"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="6"  y="6"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="6"  y="8"  width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="8"  y="8"  width="2" height="2" fill={FOLD_SHADOW}  />
-        <rect x="8"  y="10" width="2" height="2" fill={BORDER_COLOR} />
-        <rect x="10" y="10" width="2" height="2" fill={FOLD_SHADOW}  />
-      </svg>
 
       {children}
     </div>

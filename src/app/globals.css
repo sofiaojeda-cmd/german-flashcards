@@ -81,11 +81,17 @@
 
 html {
   image-rendering: pixelated;
-  overflow-y: scroll;        /* always reserve scrollbar space — prevents layout shift */
-  scrollbar-gutter: stable;  /* modern equivalent, belt-and-suspenders */
+  overflow-y: scroll;        /* keeps scrolling functional (wheel, keyboard, trackpad) */
+  scrollbar-gutter: stable;  /* reserves space so layout doesn't shift when scrollbar hides */
+  scrollbar-width: none;     /* Firefox — hide scrollbar visually */
+}
+
+html::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Edge — hide scrollbar visually */
 }
 
 body {
+  -ms-overflow-style: none;  /* IE/Edge legacy */
   background-color: var(--bg-base);
   color: var(--text-light);
   font-family: var(--font-pixel);
