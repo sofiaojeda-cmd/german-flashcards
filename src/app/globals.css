@@ -1,26 +1,166 @@
 @import "tailwindcss";
 
+/* VT323 is loaded via next/font/google in layout.tsx */
+
+/* ── Color usage rules ───────────────────────────────────────────
+   ON DARK BACKGROUNDS (--bg-base, --bg-panel-dark):
+     Primary text  →  --text-light  (#f4e4c1, cream)
+     Secondary     →  --text-muted  (#8b6f47)
+     Accents/XP    →  --accent-gold (#f0c050)  ← gold is ONLY valid on dark bg
+
+   ON LIGHT BACKGROUNDS (--bg-panel, parchment):
+     Primary text  →  --text-primary (#2d1f14, dark brown)
+     Secondary     →  --text-muted   (#8b6f47)
+     Emphasis nums →  --text-primary at larger size — NEVER gold
+
+   --accent-gold MUST NOT appear as text color on --bg-panel.
+   The other accents (green/red/blue/purple) are semantic indicators
+   only (gender colors, ratings, streak) — not general body text.
+
+   ghost variant PixelButton: transparent bg, --text-primary, no border/shadow.
+   Use on parchment (--bg-panel) for safe/cancel actions (e.g. "Keep reviewing").
+── */
+
+/* ── Design tokens ───────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-base:        #4a3826;
+  --bg-panel:       #d9b48a;
+  --bg-panel-dark:  #8b5a3c;
+  --border-dark:    #2d1f14;
+  --border-mid:     #6b4423;
+  --text-primary:   #2d1f14;
+  --text-light:     #f4e4c1;
+  --text-muted:     #8b6f47;
+  --accent-gold:    #f0c050;
+  --accent-green:   #6ab04c;
+  --accent-red:     #c0392b;
+  --accent-blue:    #4a90d9;
+  --accent-purple:  #8e44ad;
+  --shadow:         #1a0f08;
 }
 
+/* ── Tailwind theme extension ─────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-base:        var(--bg-base);
+  --color-bg-panel:       var(--bg-panel);
+  --color-bg-panel-dark:  var(--bg-panel-dark);
+  --color-border-dark:    var(--border-dark);
+  --color-border-mid:     var(--border-mid);
+  --color-text-primary:   var(--text-primary);
+  --color-text-light:     var(--text-light);
+  --color-text-muted:     var(--text-muted);
+  --color-gold:           var(--accent-gold);
+  --color-green:          var(--accent-green);
+  --color-red:            var(--accent-red);
+  --color-blue:           var(--accent-blue);
+  --color-purple:         var(--accent-purple);
+  --color-shadow:         var(--shadow);
+
+  --font-pixel: "VT323", monospace;
+
+  /* Hard box-shadow shorthand used everywhere */
+  --shadow-pixel:       3px 3px 0 var(--shadow);
+  --shadow-pixel-lg:    4px 4px 0 var(--shadow);
+  --shadow-pixel-inset: inset 2px 2px 0 var(--shadow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base styles ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0 !important; /* pixel aesthetic — no rounded corners ever */
+}
+
+html {
+  image-rendering: pixelated;
+  overflow-y: scroll;        /* always reserve scrollbar space — prevents layout shift */
+  scrollbar-gutter: stable;  /* modern equivalent, belt-and-suspenders */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-light);
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  line-height: 1.4;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  font-smooth: never;
+  min-height: 100dvh;
 }
+
+/* ── Typography scale ────────────────────────────────────────── */
+h1 { font-size: 48px; line-height: 1.1; }
+h2 { font-size: 40px; line-height: 1.1; }
+h3 { font-size: 32px; line-height: 1.2; }
+h4 { font-size: 28px; line-height: 1.2; }
+
+/* ── Pixel scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar              { width: 12px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-dark); }
+::-webkit-scrollbar-thumb        { background: var(--border-mid); border: 2px solid var(--border-dark); }
+::-webkit-scrollbar-thumb:hover  { background: var(--accent-gold); }
+
+/* ── Color context utilities ─────────────────────────────────── */
+.text-on-dark  { color: var(--text-light); }
+.text-on-light { color: var(--text-primary); }
+
+/* ── PixelButton interactions ────────────────────────────────── */
+.pixel-button {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-pixel);
+  line-height: 1;
+  transition: none;
+  user-select: none;
+}
+.pixel-button:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.pixel-button[aria-pressed="true"]:hover:not(:disabled) {
+  filter: none;
+}
+.pixel-button[data-variant="ghost"]:hover:not(:disabled) {
+  filter: none;
+  background-color: rgba(45, 31, 20, 0.06);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.pixel-button:active:not(:disabled) {
+  box-shadow: none !important;
+  transform: translate(3px, 3px);
+}
+.pixel-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Card flip animation (3-frame sprite style) ──────────────── */
+@keyframes flip-to-back {
+  0%   { transform: scaleX(1);    }
+  33%  { transform: scaleX(0.05); }
+  66%  { transform: scaleX(0.05); }
+  100% { transform: scaleX(-1);   }
+}
+
+@keyframes flip-to-front {
+  0%   { transform: scaleX(-1);   }
+  33%  { transform: scaleX(0.05); }
+  66%  { transform: scaleX(0.05); }
+  100% { transform: scaleX(1);    }
+}
+
+.card-flip-to-back  { animation: flip-to-back  240ms steps(3, end) forwards; }
+.card-flip-to-front { animation: flip-to-front 240ms steps(3, end) forwards; }
+
+/* ── XP float animation ──────────────────────────────────────── */
+@keyframes xp-float {
+  0%   { opacity: 1; transform: translateY(0);    }
+  60%  { opacity: 1; transform: translateY(-24px); }
+  100% { opacity: 0; transform: translateY(-32px); }
+}
+
+.xp-float { animation: xp-float 600ms steps(6, end) forwards; }

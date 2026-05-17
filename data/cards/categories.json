@@ -1,0 +1,12 @@
+{
+  "categories": [
+    {"id":"everyday","name":"Alltag","nameEn":"Everyday Life","description":"Core vocabulary for daily situations, abstract concepts, and common feelings","icon":"home","file":"b1-everyday.json"},
+    {"id":"food","name":"Essen & Trinken","nameEn":"Food & Drink","description":"Ingredients, cooking, restaurants, and tastes","icon":"utensils","file":"b1-food.json"},
+    {"id":"politics","name":"Gesellschaft & Politik","nameEn":"Society & Politics","description":"Vocabulary for discussing politics, social issues, and current events","icon":"scale","file":"b1-politics.json"},
+    {"id":"astrology","name":"Astrologie","nameEn":"Astrology","description":"Zodiac signs, planets, and astrological concepts","icon":"moon-stars","file":"b1-astrology.json"},
+    {"id":"animals","name":"Tiere","nameEn":"Animals","description":"Pets, wildlife, farm animals, and animal-related vocabulary","icon":"paw","file":"b1-animals.json"},
+    {"id":"fitness","name":"Fitness & Sport","nameEn":"Fitness & Gym","description":"Gym equipment, exercises, body parts, and fitness goals","icon":"dumbbell","file":"b1-fitness.json"},
+    {"id":"self-improvement","name":"Persönliche Entwicklung","nameEn":"Self-Improvement","description":"Mindfulness, habits, goals, and personal growth","icon":"sparkles","file":"b1-self-improvement.json"},
+    {"id":"berlin","name":"Berlin & Bürokratie","nameEn":"Berlin & Bureaucracy","description":"Living in Berlin: housing, registration, transport, and everyday admin","icon":"map-pin","file":"b1-berlin.json"}
+  ]
+}
