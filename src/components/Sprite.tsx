@@ -4,7 +4,7 @@
  * Two character types:
  *   - character-level-{1..15}.png — the USER's avatar, levels up with XP.
  *     Use with useUserLevel(). Appears in dashboard HeroStrip and profile views only.
- *   - mascot-{happy,thinking,waving}.png — the app's GUIDE, always a mature neutral otter.
+ *   - mascot-{happy,sad}.png — the app's GUIDE, always a mature neutral otter.
  *     Use in dialogs and empty states. Never swapped for the user's level character.
  *
  * Other sprites:
@@ -13,7 +13,7 @@
  *
  * Usage:
  *   <Sprite name={`character-level-${userLevel}`} size={96} />  ← dashboard
- *   <Sprite name="mascot-thinking" size={72} />                  ← dialogs
+ *   <Sprite name="mascot-sad" size={72} />                       ← dialogs
  *   <Sprite name="category-food" size={48} alt="Food category" />
  */
 
@@ -21,8 +21,7 @@ import * as React from "react";
 
 const DEFAULT_SIZES: Record<string, number> = {
   "mascot-happy": 96,
-  "mascot-thinking": 96,
-  "mascot-waving": 96,
+  "mascot-sad": 96,
   "level-trophy": 96,
   "streak-flame": 32,
   "xp-coin": 24,

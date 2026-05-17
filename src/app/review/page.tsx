@@ -357,7 +357,7 @@ export default function ReviewPage() {
         open={showExitDialog}
         onOpenChange={(open) => { if (!open) setShowExitDialog(false); }}
         title="Leaving so soon?"
-        portrait={<Sprite name="mascot-waving" size={72} />}
+        portrait={<Sprite name="mascot-sad" size={72} />}
       >
         <p style={{ fontSize: "20px", color: "var(--text-primary)", margin: "0 0 16px", lineHeight: 1.4 }}>
           Cards you&apos;ve already rated are saved. But you&apos;ll lose your place in
