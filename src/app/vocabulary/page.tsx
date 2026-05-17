@@ -337,6 +337,14 @@ export default function VocabularyPage() {
               padding: "6px 10px 10px",
               position: "relative",
               zIndex: 0,
+              // Multi-tone depth: top+left lighter (highlight), bottom+right darker (shadow), drop shadow below
+              boxShadow: [
+                "4px 6px 0 rgba(26,15,8,0.50)",
+                "inset 0 4px 0 rgba(255,255,255,0.15)",
+                "inset 4px 0 0 rgba(255,255,255,0.10)",
+                "inset 0 -3px 0 rgba(0,0,0,0.12)",
+                "inset -3px 0 0 rgba(0,0,0,0.10)",
+              ].join(", "),
             }}
           >
             <PixelNotebookPage>
@@ -497,72 +505,87 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
         </span>
       </button>
 
-      {/* Expanded detail — sits between lines, not constrained to line height */}
+      {/* Expanded detail — two columns: text left, ghost action button right */}
       {expanded && (
         <div
           style={{
             borderTop: "1px solid var(--notebook-line-color)",
             borderBottom: "1px solid var(--notebook-line-color)",
-            padding: "10px 0 10px",
+            padding: "10px 0",
             display: "flex",
-            flexDirection: "column",
             gap: "8px",
+            alignItems: "stretch",
           }}
         >
-          {card.exampleSentence ? (
-            <div>
-              <p style={{ fontSize: "18px", color: "var(--text-primary)", margin: "0 0 4px" }}>
-                {card.exampleSentence}
-              </p>
-              {card.exampleTranslation && (
-                <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0 }}>
-                  {card.exampleTranslation}
+          {/* Left: example sentence + metadata */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+            {card.exampleSentence ? (
+              <div>
+                <p style={{ fontSize: "18px", color: "var(--text-primary)", margin: "0 0 4px" }}>
+                  {card.exampleSentence}
                 </p>
-              )}
+                {card.exampleTranslation && (
+                  <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0 }}>
+                    {card.exampleTranslation}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0 }}>
+                No example sentence.
+              </p>
+            )}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", fontSize: "16px", color: "var(--text-muted)" }}>
+              <span>Last reviewed: {formatLastReviewed(record.lastReviewed)}</span>
+              <span>Next review: {formatDueDate(record.dueDate)}</span>
             </div>
-          ) : (
-            <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0 }}>
-              No example sentence.
-            </p>
-          )}
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "16px",
-              fontSize: "16px",
-              color: "var(--text-muted)",
-            }}
-          >
-            <span>Last reviewed: {formatLastReviewed(record.lastReviewed)}</span>
-            <span>Next review: {formatDueDate(record.dueDate)}</span>
           </div>
 
-          <div>
-            {record.status !== "known" ? (
-              <PixelButton
-                variant="secondary"
-                size="sm"
-                disabled={busy}
-                onClick={() => doAction("known")}
-              >
-                Move to Known
-              </PixelButton>
-            ) : (
-              <PixelButton
-                variant="secondary"
-                size="sm"
-                disabled={busy}
-                onClick={() => doAction("learning")}
-              >
-                Move back to Learning
-              </PixelButton>
-            )}
+          {/* Right: ghost action button aligned with example text */}
+          <div style={{ minWidth: "96px", display: "flex", alignItems: "flex-end", justifyContent: "flex-end" }}>
+            <GhostActionButton busy={busy} status={record.status} onAction={doAction} />
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// ── Ghost action button (inside expanded row) ─────────────────────
+
+function GhostActionButton({
+  busy,
+  status,
+  onAction,
+}: {
+  busy: boolean;
+  status: string;
+  onAction: (action: "known" | "learning") => Promise<void>;
+}) {
+  const [hovered, setHovered] = React.useState(false);
+  const isKnown = status === "known";
+  return (
+    <button
+      disabled={busy}
+      onClick={() => onAction(isKnown ? "learning" : "known")}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "none",
+        border: "none",
+        padding: 0,
+        cursor: busy ? "not-allowed" : "pointer",
+        fontFamily: "var(--font-pixel)",
+        fontSize: "15px",
+        color: busy ? "var(--text-muted)" : "var(--text-primary)",
+        textDecoration: hovered && !busy ? "underline" : "none",
+        opacity: busy ? 0.45 : 1,
+        textAlign: "right",
+        lineHeight: 1.3,
+      }}
+    >
+      {isKnown ? "Move back to Learning" : "Move to Known"}
+    </button>
   );
 }
 

@@ -18,10 +18,9 @@ export function PixelFolderTab({ label, active, onClick }: PixelFolderTabProps) 
         padding: "0 14px",
         backgroundColor: active ? "var(--folder-tab-color)" : "var(--folder-tab-inactive)",
         border: "3px solid var(--border-dark)",
-        // Active tab bottom border matches folder body bg — merges into the folder below
-        borderBottom: active ? "3px solid var(--folder-tab-color)" : "3px solid var(--border-dark)",
+        borderBottom: active ? "none" : "3px solid var(--border-dark)",
         boxShadow: active
-          ? "inset 2px 2px 0 rgba(255,255,255,0.25), inset -1px -1px 0 rgba(0,0,0,0.15)"
+          ? "inset 0 3px 0 rgba(255,255,255,0.22), inset 2px 0 0 rgba(255,255,255,0.15), inset -1px -1px 0 rgba(0,0,0,0.15)"
           : "inset 1px 1px 0 rgba(255,255,255,0.15), inset -1px -1px 0 rgba(0,0,0,0.20)",
         fontFamily: "var(--font-pixel)",
         fontSize: "18px",
