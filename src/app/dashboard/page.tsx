@@ -90,7 +90,7 @@ export default function DashboardPage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        padding: "96px 24px 48px",
+        padding: "var(--dashboard-padding-top) 24px 48px",
         fontFamily: "var(--font-pixel)",
       }}
     >
