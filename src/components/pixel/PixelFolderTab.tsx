@@ -4,13 +4,11 @@ import * as React from "react";
 
 type PixelFolderTabProps = {
   label: string;
-  /** Sprite name without path/extension, e.g. "category-food" */
-  icon?: string;
   active: boolean;
   onClick: () => void;
 };
 
-export function PixelFolderTab({ label, icon, active, onClick }: PixelFolderTabProps) {
+export function PixelFolderTab({ label, active, onClick }: PixelFolderTabProps) {
   return (
     <button
       onClick={onClick}
@@ -20,8 +18,8 @@ export function PixelFolderTab({ label, icon, active, onClick }: PixelFolderTabP
         padding: "0 14px",
         backgroundColor: active ? "var(--folder-tab-color)" : "var(--folder-tab-inactive)",
         border: "3px solid var(--border-dark)",
-        // Active tab bottom border matches notebook bg — visually merges into page below
-        borderBottom: active ? "3px solid var(--bg-panel)" : "3px solid var(--border-dark)",
+        // Active tab bottom border matches folder body bg — merges into the folder below
+        borderBottom: active ? "3px solid var(--folder-tab-color)" : "3px solid var(--border-dark)",
         boxShadow: active
           ? "inset 2px 2px 0 rgba(255,255,255,0.25), inset -1px -1px 0 rgba(0,0,0,0.15)"
           : "inset 1px 1px 0 rgba(255,255,255,0.15), inset -1px -1px 0 rgba(0,0,0,0.20)",
@@ -59,15 +57,6 @@ export function PixelFolderTab({ label, icon, active, onClick }: PixelFolderTabP
         }}
       />
 
-      {icon && (
-        <img
-          src={`/sprites/${icon}.png`}
-          width={16}
-          height={16}
-          alt=""
-          style={{ imageRendering: "pixelated", display: "block", flexShrink: 0 }}
-        />
-      )}
       <span>{label}</span>
     </button>
   );

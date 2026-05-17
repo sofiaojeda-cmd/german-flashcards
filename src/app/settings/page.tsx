@@ -231,18 +231,7 @@ export default function SettingsPage() {
                     checked={isActive}
                     disabled={topicBusy}
                     onChange={(checked) => handleTopicToggle(cat.id, checked)}
-                    label={
-                      <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <img
-                          src={`/sprites/category-${cat.id}.png`}
-                          width={18}
-                          height={18}
-                          alt=""
-                          style={{ imageRendering: "pixelated", display: "block", flexShrink: 0 }}
-                        />
-                        {cat.nameEn}
-                      </span>
-                    }
+                    label={cat.nameEn}
                   />
                 );
               })}

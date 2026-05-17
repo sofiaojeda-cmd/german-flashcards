@@ -36,16 +36,27 @@ const ARTICLE_COLOR: Record<string, string> = {
   das: "var(--accent-green)",
 };
 
-const STATUS_COLOR: Record<string, string> = {
-  learning: "var(--accent-blue)",
-  mastered: "var(--accent-green)",
-  known: "var(--accent-gold)",
-};
+type BadgeStyle = { bg: string; border: string; color: string; boxShadow: string };
 
-const STATUS_TEXT: Record<string, string> = {
-  learning: "var(--text-light)",
-  mastered: "var(--text-light)",
-  known: "var(--text-primary)",
+const STATUS_BADGE: Record<string, BadgeStyle> = {
+  learning: {
+    bg:        "var(--accent-blue)",
+    border:    "2px solid #2a5c8a",
+    color:     "var(--text-light)",
+    boxShadow: "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)",
+  },
+  mastered: {
+    bg:        "var(--accent-green)",
+    border:    "2px solid #3a6b1a",
+    color:     "var(--text-light)",
+    boxShadow: "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)",
+  },
+  known: {
+    bg:        "var(--accent-gold)",
+    border:    "2px solid #a07810",
+    color:     "var(--text-primary)",
+    boxShadow: "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)",
+  },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -285,9 +296,9 @@ export default function VocabularyPage() {
           })}
         </div>
 
-        {/* ── Folder tabs + notebook (no gap between them) ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {/* Folder tab row */}
+        {/* ── Folder tabs + folder body + notebook ── */}
+        <div style={{ position: "relative" }}>
+          {/* Tab row — overlaps folder body's top border by 3px via negative margin */}
           {topics.length > 0 && (
             <div
               style={{
@@ -295,9 +306,11 @@ export default function VocabularyPage() {
                 alignItems: "flex-end",
                 gap: "2px",
                 overflowX: "auto",
-                // Hide scrollbar cross-browser
                 scrollbarWidth: "none",
                 msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
+                position: "relative",
+                zIndex: 1,
+                marginBottom: "-3px",
               }}
             >
               <PixelFolderTab
@@ -309,7 +322,6 @@ export default function VocabularyPage() {
                 <PixelFolderTab
                   key={topic}
                   label={capitalize(topic)}
-                  icon={`category-${topic}`}
                   active={activeTopic === topic}
                   onClick={() => switchTopic(topic)}
                 />
@@ -317,26 +329,36 @@ export default function VocabularyPage() {
             </div>
           )}
 
-          {/* Notebook page */}
-          <PixelNotebookPage>
-            {collected === 0 ? (
-              <EmptyCollection onStart={() => router.push("/review")} />
-            ) : filtered.length === 0 ? (
-              <NoResults onClear={clearFilters} />
-            ) : (
-              filtered.map((row) => (
-                <CardRow
-                  key={row.card.id}
-                  row={row}
-                  expanded={expandedId === row.card.id}
-                  onToggle={() =>
-                    setExpandedId(expandedId === row.card.id ? null : row.card.id)
-                  }
-                  onAction={handleAction}
-                />
-              ))
-            )}
-          </PixelNotebookPage>
+          {/* Folder body — gold wrap around notebook page */}
+          <div
+            style={{
+              backgroundColor: "var(--folder-tab-color)",
+              border: "3px solid var(--border-dark)",
+              padding: "6px 10px 10px",
+              position: "relative",
+              zIndex: 0,
+            }}
+          >
+            <PixelNotebookPage>
+              {collected === 0 ? (
+                <EmptyCollection onStart={() => router.push("/review")} />
+              ) : filtered.length === 0 ? (
+                <NoResults onClear={clearFilters} />
+              ) : (
+                filtered.map((row) => (
+                  <CardRow
+                    key={row.card.id}
+                    row={row}
+                    expanded={expandedId === row.card.id}
+                    onToggle={() =>
+                      setExpandedId(expandedId === row.card.id ? null : row.card.id)
+                    }
+                    onAction={handleAction}
+                  />
+                ))
+              )}
+            </PixelNotebookPage>
+          </div>
         </div>
       </div>
     </div>
@@ -459,11 +481,12 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
 
         <span
           style={{
-            backgroundColor: STATUS_COLOR[record.status] ?? "var(--bg-panel-dark)",
-            color: STATUS_TEXT[record.status] ?? "var(--text-light)",
+            backgroundColor: STATUS_BADGE[record.status]?.bg ?? "var(--bg-panel-dark)",
+            color:           STATUS_BADGE[record.status]?.color ?? "var(--text-light)",
+            border:          STATUS_BADGE[record.status]?.border ?? "2px solid var(--border-dark)",
+            boxShadow:       STATUS_BADGE[record.status]?.boxShadow,
             padding: "2px 8px",
             fontSize: "14px",
-            border: "2px solid var(--border-dark)",
             flexShrink: 0,
             textTransform: "capitalize",
             minWidth: "88px",
