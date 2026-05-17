@@ -46,16 +46,26 @@
   --notebook-line-height:  44px;
 
   /* ── Review screen responsive tokens ── */
-  --review-padding-top:      64px;
-  --review-padding-x:        24px;
-  --review-card-min-height:  340px;
+  --review-padding-top:          96px;
+  --review-padding-x:            24px;
+  --review-card-min-height:      340px;
+  --review-col-gap:              48px;
+  --review-btn-area-min-height:  192px;
+  --rating-btn-row-gap:          16px;
+  --rating-btn-font-size:        22px;
+  --rating-btn-padding:          16px 8px;
 }
 
 @media (max-width: 599px) {
   :root {
-    --review-padding-top:     40px;
-    --review-padding-x:       16px;
-    --review-card-min-height: 200px;
+    --review-padding-top:          40px;
+    --review-padding-x:            16px;
+    --review-card-min-height:      200px;
+    --review-col-gap:              20px;
+    --review-btn-area-min-height:  auto;
+    --rating-btn-row-gap:          6px;
+    --rating-btn-font-size:        13px;
+    --rating-btn-padding:          10px 4px;
   }
 }
 

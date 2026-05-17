@@ -276,7 +276,7 @@ export default function ReviewPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
-          gap: "20px",
+          gap: "var(--review-col-gap)",
           width: "100%",
           maxWidth: "720px",
         }}
@@ -325,7 +325,7 @@ export default function ReviewPage() {
         <div
           style={{
             width: "100%",
-            minHeight: "auto",
+            minHeight: "var(--review-btn-area-min-height)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",

@@ -35,7 +35,7 @@ export function RatingButtons({ record, busy, onRate, onKnown }: RatingButtonsPr
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "32px", width: "100%" }}>
-      <div style={{ display: "flex", gap: "6px", width: "100%" }}>
+      <div style={{ display: "flex", gap: "var(--rating-btn-row-gap)", width: "100%" }}>
         {RATINGS.map(({ quality, label, variant, style }, i) => (
           <div
             key={quality}
@@ -48,8 +48,8 @@ export function RatingButtons({ record, busy, onRate, onKnown }: RatingButtonsPr
               onClick={() => onRate(quality)}
               style={{
                 width: "100%",
-                padding: "10px 4px",
-                fontSize: "13px",
+                padding: "var(--rating-btn-padding)",
+                fontSize: "var(--rating-btn-font-size)",
                 whiteSpace: "nowrap",
                 minHeight: "52px",
                 ...style,
