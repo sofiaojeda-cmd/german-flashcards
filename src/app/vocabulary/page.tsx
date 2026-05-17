@@ -541,8 +541,8 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
             </div>
           </div>
 
-          {/* Right: ghost action button aligned with example text */}
-          <div style={{ minWidth: "96px", display: "flex", alignItems: "flex-end", justifyContent: "flex-end" }}>
+          {/* Right: ghost action button top-aligned, visually below the status badge above */}
+          <div style={{ minWidth: "96px", display: "flex", alignItems: "flex-start", justifyContent: "flex-end" }}>
             <GhostActionButton busy={busy} status={record.status} onAction={doAction} />
           </div>
         </div>
