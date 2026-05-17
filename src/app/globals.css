@@ -109,6 +109,9 @@ h4 { font-size: 28px; line-height: 1.2; }
 ::-webkit-scrollbar-thumb        { background: var(--border-mid); border: 2px solid var(--border-dark); }
 ::-webkit-scrollbar-thumb:hover  { background: var(--accent-gold); }
 
+/* ── Tab scroll strip — hide native scrollbar (webkit) ──────── */
+.tabs-scroll::-webkit-scrollbar { display: none; }
+
 /* ── Color context utilities ─────────────────────────────────── */
 .text-on-dark  { color: var(--text-light); }
 .text-on-light { color: var(--text-primary); }

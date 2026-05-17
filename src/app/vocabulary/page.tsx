@@ -340,36 +340,63 @@ export default function VocabularyPage() {
 
         {/* ── Folder tabs + folder body + notebook ── */}
         <div style={{ position: "relative" }}>
-          {/* Tab row — overlaps folder body's top border by 3px via negative margin */}
+          {/* Tab row — clips the scrollable strip so it can't overflow the page */}
           {topics.length > 0 && (
             <div
               style={{
                 position: "relative",
                 zIndex: 1,
                 marginBottom: "-3px",
+                overflowX: "hidden",  // constrains the strip; allows scrollWidth detection
               }}
             >
-              {/* Left arrow */}
+              {/* Peek folder tabs — stacked behind the right edge, pointer-events off */}
+              {canScrollRight && PEEK_COLORS.map((color, i) => (
+                <div
+                  key={i}
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    right: ARROW_W + i * 6,
+                    bottom: 0,
+                    width: 20,
+                    height: 30 + i * 2,
+                    backgroundColor: color,
+                    border: "3px solid var(--border-dark)",
+                    borderBottom: "none",
+                    zIndex: 0,
+                    pointerEvents: "none",
+                  }}
+                />
+              ))}
+
+              {/* Left scroll arrow — shown when scrolled away from start */}
               {canScrollLeft && (
                 <TabArrowButton
                   direction="left"
                   onClick={scrollTabsLeft}
-                  style={{ position: "absolute", left: 0, bottom: 0, zIndex: 3 }}
+                  style={{ position: "absolute", left: 0, bottom: 0, zIndex: 2 }}
                 />
               )}
 
-              {/* Scroll strip */}
+              {/* Scrollable tab strip — always in scroll mode; native bar hidden via CSS */}
               <div
                 ref={scrollRef}
+                className="tabs-scroll"
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   display: "flex",
                   alignItems: "flex-end",
                   gap: "2px",
-                  overflowX: "auto",
+                  overflowX: "scroll",
                   scrollbarWidth: "none",
                   msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
                   paddingLeft: canScrollLeft ? `${ARROW_W + 4}px` : 0,
-                  paddingRight: canScrollRight ? `${ARROW_W + 4 + 40}px` : 0,
+                  // Reserve room for arrow + peek stack (28 + 12 + 20 + 4 = 64px)
+                  paddingRight: canScrollRight
+                    ? `${ARROW_W + (PEEK_COLORS.length - 1) * 6 + 20 + 4}px`
+                    : 0,
                 }}
               >
                 <PixelFolderTab
@@ -387,37 +414,13 @@ export default function VocabularyPage() {
                 ))}
               </div>
 
-              {/* Peek stack + right arrow */}
+              {/* Right scroll arrow — shown when there's content to the right */}
               {canScrollRight && (
-                <>
-                  {/* Stacked peek tabs — darker gold tints suggesting more tabs behind */}
-                  <div
-                    aria-hidden
-                    style={{ position: "absolute", right: ARROW_W, bottom: 0, zIndex: 2, pointerEvents: "none" }}
-                  >
-                    {PEEK_COLORS.map((color, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          position: "absolute",
-                          right: i * 6,
-                          bottom: 0,
-                          width: 20,
-                          height: 32 + i * 2,
-                          backgroundColor: color,
-                          border: "3px solid var(--border-dark)",
-                          borderBottom: "none",
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <TabArrowButton
-                    direction="right"
-                    onClick={scrollTabsRight}
-                    style={{ position: "absolute", right: 0, bottom: 0, zIndex: 3 }}
-                  />
-                </>
+                <TabArrowButton
+                  direction="right"
+                  onClick={scrollTabsRight}
+                  style={{ position: "absolute", right: 0, bottom: 0, zIndex: 2 }}
+                />
               )}
             </div>
           )}
