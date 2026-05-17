@@ -1,5 +1,6 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import * as React from "react";
 import { seedCards, resetAllData } from "@/lib/db/seed";
 import db from "@/lib/db/schema";
@@ -31,6 +32,8 @@ async function getStats(): Promise<Stats> {
 }
 
 export default function SeedTestPage() {
+  if (process.env.NODE_ENV === "production") notFound();
+
   const [stats, setStats] = React.useState<Stats | null>(null);
   const [log, setLog] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState(false);

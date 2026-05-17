@@ -1,5 +1,6 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import * as React from "react";
 import { User } from "pixelarticons/react";
 import {
@@ -14,6 +15,8 @@ import {
 } from "@/components/pixel";
 
 export default function ComponentsPage() {
+  if (process.env.NODE_ENV === "production") notFound();
+
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [dialogPortraitOpen, setDialogPortraitOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
