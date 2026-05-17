@@ -37,6 +37,13 @@
   --accent-blue:    #4a90d9;
   --accent-purple:  #8e44ad;
   --shadow:         #1a0f08;
+
+  /* ── Notebook / folder tokens ── */
+  --folder-tab-color:      #e0a020;
+  --folder-tab-inactive:   #b88018;
+  --notebook-line-color:   #b89070;
+  --notebook-margin-color: #a83228;
+  --notebook-line-height:  44px;
 }
 
 /* ── Tailwind theme extension ─────────────────────────────────── */

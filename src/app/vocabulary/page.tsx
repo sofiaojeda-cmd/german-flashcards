@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { PixelButton, PixelInput } from "@/components/pixel";
+import { PixelButton, PixelInput, PixelFolderTab, PixelNotebookPage } from "@/components/pixel";
 
 const SearchIcon = (
   <svg width="16" height="16" viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden>
@@ -285,53 +285,59 @@ export default function VocabularyPage() {
           })}
         </div>
 
-        {/* ── Topic chips ── */}
-        {topics.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {["all", ...topics].map((topic) => (
-              <PixelButton
-                key={topic}
-                size="sm"
-                variant="secondary"
-                selected={activeTopic === topic}
-                onClick={() => switchTopic(topic)}
-                style={{ gap: "6px" }}
-              >
-                {topic !== "all" && (
-                  <img
-                    src={`/sprites/category-${topic}.png`}
-                    width={16}
-                    height={16}
-                    alt=""
-                    style={{ imageRendering: "pixelated", display: "block", flexShrink: 0 }}
-                  />
-                )}
-                {topic === "all" ? "All topics" : capitalize(topic)}
-              </PixelButton>
-            ))}
-          </div>
-        )}
-
-        {/* ── Card list / empty states ── */}
-        {collected === 0 ? (
-          <EmptyCollection onStart={() => router.push("/review")} />
-        ) : filtered.length === 0 ? (
-          <NoResults onClear={clearFilters} />
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {filtered.map((row) => (
-              <CardRow
-                key={row.card.id}
-                row={row}
-                expanded={expandedId === row.card.id}
-                onToggle={() =>
-                  setExpandedId(expandedId === row.card.id ? null : row.card.id)
-                }
-                onAction={handleAction}
+        {/* ── Folder tabs + notebook (no gap between them) ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {/* Folder tab row */}
+          {topics.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                gap: "2px",
+                overflowX: "auto",
+                // Hide scrollbar cross-browser
+                scrollbarWidth: "none",
+                msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
+              }}
+            >
+              <PixelFolderTab
+                label="All topics"
+                active={activeTopic === "all"}
+                onClick={() => switchTopic("all")}
               />
-            ))}
-          </div>
-        )}
+              {topics.map((topic) => (
+                <PixelFolderTab
+                  key={topic}
+                  label={capitalize(topic)}
+                  icon={`category-${topic}`}
+                  active={activeTopic === topic}
+                  onClick={() => switchTopic(topic)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Notebook page */}
+          <PixelNotebookPage>
+            {collected === 0 ? (
+              <EmptyCollection onStart={() => router.push("/review")} />
+            ) : filtered.length === 0 ? (
+              <NoResults onClear={clearFilters} />
+            ) : (
+              filtered.map((row) => (
+                <CardRow
+                  key={row.card.id}
+                  row={row}
+                  expanded={expandedId === row.card.id}
+                  onToggle={() =>
+                    setExpandedId(expandedId === row.card.id ? null : row.card.id)
+                  }
+                  onAction={handleAction}
+                />
+              ))
+            )}
+          </PixelNotebookPage>
+        </div>
       </div>
     </div>
   );
@@ -396,7 +402,6 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
   const spaceIdx = card.front.indexOf(" ");
   const article = card.gender && spaceIdx !== -1 ? card.front.slice(0, spaceIdx) : null;
   const rest = article ? card.front.slice(spaceIdx) : null;
-  const topicSprite = card.topics[0] ? `category-${card.topics[0]}` : null;
 
   async function doAction(action: "known" | "learning") {
     setBusy(true);
@@ -408,78 +413,50 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
   }
 
   return (
-    <div
-      style={{
-        backgroundColor: "var(--bg-panel)",
-        border: "3px solid var(--border-dark)",
-        boxShadow: expanded ? "2px 2px 0 var(--shadow)" : "4px 4px 0 var(--shadow)",
-      }}
-    >
-      {/* Collapsed header — clickable toggle */}
+    <div>
+      {/* Single notebook line — exactly line-height tall */}
       <button
         onClick={onToggle}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
           width: "100%",
-          background: hovered && !expanded ? "rgba(139, 90, 60, 0.08)" : "transparent",
+          height: "var(--notebook-line-height)",
+          background: hovered && !expanded ? "rgba(0,0,0,0.04)" : "transparent",
           border: "none",
-          padding: "12px 16px",
+          padding: "0",
           cursor: "pointer",
           fontFamily: "var(--font-pixel)",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
+          gap: "8px",
           textAlign: "left",
         }}
       >
-        {/* Left: topic icon + German word + English translation */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "4px",
-            }}
-          >
-            {topicSprite && (
-              <img
-                src={`/sprites/${topicSprite}.png`}
-                width={16}
-                height={16}
-                alt=""
-                style={{
-                  imageRendering: "pixelated",
-                  display: "block",
-                  flexShrink: 0,
-                }}
-              />
-            )}
-            <span style={{ fontSize: "22px", lineHeight: 1.2 }}>
-              {article ? (
-                <>
-                  <span style={{ color: ARTICLE_COLOR[card.gender!] }}>{article}</span>
-                  <span style={{ color: "var(--text-primary)" }}>{rest}</span>
-                </>
-              ) : (
-                <span style={{ color: "var(--text-primary)" }}>{card.front}</span>
-              )}
-            </span>
-          </div>
-          <span
-            style={{
-              fontSize: "17px",
-              color: "var(--text-muted)",
-              paddingLeft: topicSprite ? "24px" : "0",
-              display: "block",
-            }}
-          >
+        <span
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontSize: "20px",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {article ? (
+            <>
+              <span style={{ color: ARTICLE_COLOR[card.gender!] }}>{article}</span>
+              <span style={{ color: "var(--text-primary)" }}>{rest}</span>
+            </>
+          ) : (
+            <span style={{ color: "var(--text-primary)" }}>{card.front}</span>
+          )}
+          <span style={{ color: "var(--text-muted)", fontSize: "17px" }}>
+            {" · "}
             {card.back}
           </span>
-        </div>
+        </span>
 
-        {/* Right: status badge — fixed width so all three labels align vertically */}
         <span
           style={{
             backgroundColor: STATUS_COLOR[record.status] ?? "var(--bg-panel-dark)",
@@ -497,15 +474,16 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
         </span>
       </button>
 
-      {/* Expanded detail section */}
+      {/* Expanded detail — sits between lines, not constrained to line height */}
       {expanded && (
         <div
           style={{
-            borderTop: "2px solid var(--border-mid)",
-            padding: "12px 16px 16px",
+            borderTop: "1px solid var(--notebook-line-color)",
+            borderBottom: "1px solid var(--notebook-line-color)",
+            padding: "10px 0 10px",
             display: "flex",
             flexDirection: "column",
-            gap: "10px",
+            gap: "8px",
           }}
         >
           {card.exampleSentence ? (
@@ -571,14 +549,9 @@ function EmptyCollection({ onStart }: { onStart: () => void }) {
   return (
     <div
       style={{
-        backgroundColor: "var(--bg-panel)",
-        border: "3px solid var(--border-dark)",
-        boxShadow: "4px 4px 0 var(--shadow)",
-        padding: "40px 24px",
-        textAlign: "center",
+        padding: "32px 0",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
         gap: "16px",
       }}
     >
@@ -592,15 +565,7 @@ function EmptyCollection({ onStart }: { onStart: () => void }) {
 
 function NoResults({ onClear }: { onClear: () => void }) {
   return (
-    <div
-      style={{
-        backgroundColor: "var(--bg-panel)",
-        border: "3px solid var(--border-dark)",
-        boxShadow: "4px 4px 0 var(--shadow)",
-        padding: "32px 24px",
-        textAlign: "center",
-      }}
-    >
+    <div style={{ padding: "32px 0" }}>
       <p style={{ fontSize: "20px", color: "var(--text-primary)", margin: "0 0 12px" }}>
         No cards match these filters.
       </p>
