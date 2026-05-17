@@ -44,6 +44,19 @@
   --notebook-line-color:   #c8a878;
   --notebook-margin-color: #a83228;
   --notebook-line-height:  44px;
+
+  /* ── Review screen responsive tokens ── */
+  --review-padding-top:      64px;
+  --review-padding-x:        24px;
+  --review-card-min-height:  340px;
+}
+
+@media (max-width: 599px) {
+  :root {
+    --review-padding-top:     40px;
+    --review-padding-x:       16px;
+    --review-card-min-height: 200px;
+  }
 }
 
 /* ── Tailwind theme extension ─────────────────────────────────── */
@@ -121,6 +134,16 @@ h4 { font-size: 28px; line-height: 1.2; }
 /* ── Color context utilities ─────────────────────────────────── */
 .text-on-dark  { color: var(--text-light); }
 .text-on-light { color: var(--text-primary); }
+
+/* ── PixelDialog responsive layout ───────────────────────────── */
+.pixel-dialog-body    { display: flex; gap: 16px; }
+.pixel-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+@media (max-width: 599px) {
+  .pixel-dialog-body    { flex-direction: column; align-items: center; }
+  .pixel-dialog-actions { justify-content: stretch; }
+  .pixel-dialog-actions > * { flex: 1; }
+}
 
 /* ── PixelButton interactions ────────────────────────────────── */
 .pixel-button {

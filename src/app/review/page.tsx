@@ -267,7 +267,7 @@ export default function ReviewPage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        padding: "96px 24px 24px",
+        padding: "var(--review-padding-top) var(--review-padding-x) 16px",
         fontFamily: "var(--font-pixel)",
       }}
     >
@@ -276,7 +276,7 @@ export default function ReviewPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
-          gap: "48px",
+          gap: "20px",
           width: "100%",
           maxWidth: "720px",
         }}
@@ -325,7 +325,7 @@ export default function ReviewPage() {
         <div
           style={{
             width: "100%",
-            minHeight: "192px",
+            minHeight: "auto",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",

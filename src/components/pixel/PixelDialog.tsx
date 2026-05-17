@@ -73,7 +73,7 @@ export function PixelDialog({
           />
 
           {/* Body: optional portrait + text */}
-          <div style={{ position: "relative", display: "flex", gap: "16px" }}>
+          <div className="pixel-dialog-body" style={{ position: "relative" }}>
             {portrait && (
               <div
                 style={{
@@ -140,14 +140,7 @@ export function PixelDialog({
 /** Bottom-right aligned action button row for use inside PixelDialog */
 export function PixelDialogActions({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "flex-end",
-        gap: "10px",
-        position: "relative",
-      }}
-    >
+    <div className="pixel-dialog-actions" style={{ position: "relative" }}>
       {children}
     </div>
   );

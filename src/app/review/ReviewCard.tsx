@@ -4,6 +4,14 @@ import * as React from "react";
 import { PixelCard } from "@/components/pixel";
 import type { Card } from "@/types";
 
+function getWordFontSize(word: string, base: number): number {
+  const len = word.length;
+  if (len <= 12) return base;
+  if (len <= 16) return Math.max(base - 8, 28);
+  if (len <= 20) return Math.max(base - 16, 28);
+  return Math.max(base - 24, 24);
+}
+
 const articleColor: Record<string, string> = {
   der: "var(--accent-blue)",
   die: "var(--accent-red)",
@@ -50,7 +58,7 @@ export function ReviewCard({ card, flipped, onFlip }: ReviewCardProps) {
         onMouseEnter={interactive ? () => setHovered(true) : undefined}
         onMouseLeave={interactive ? () => setHovered(false) : undefined}
         style={{
-          minHeight: "340px",
+          minHeight: "var(--review-card-min-height)",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -76,14 +84,15 @@ export function ReviewCard({ card, flipped, onFlip }: ReviewCardProps) {
 }
 
 function Front({ card }: { card: Card }) {
+  const fontSize = getWordFontSize(card.front, 52);
+
   if (card.gender) {
-    // Noun: split "die Wade" → ["die", "Wade"], color the article, rest in --text-primary
     const spaceIdx = card.front.indexOf(" ");
     const article = spaceIdx === -1 ? card.front : card.front.slice(0, spaceIdx);
-    const rest = spaceIdx === -1 ? "" : card.front.slice(spaceIdx); // keeps leading space
+    const rest = spaceIdx === -1 ? "" : card.front.slice(spaceIdx);
 
     return (
-      <span style={{ fontSize: "52px", lineHeight: 1.1, textAlign: "center" }}>
+      <span style={{ fontSize: `${fontSize}px`, lineHeight: 1.1, textAlign: "center" }}>
         <span style={{ color: articleColor[card.gender] }}>{article}</span>
         <span style={{ color: "var(--text-primary)" }}>{rest}</span>
       </span>
@@ -91,7 +100,7 @@ function Front({ card }: { card: Card }) {
   }
 
   return (
-    <span style={{ fontSize: "52px", color: "var(--text-primary)", lineHeight: 1.1, textAlign: "center" }}>
+    <span style={{ fontSize: `${fontSize}px`, color: "var(--text-primary)", lineHeight: 1.1, textAlign: "center" }}>
       {card.front}
     </span>
   );
@@ -108,7 +117,7 @@ function Back({ card }: { card: Card }) {
         </span>
       )}
 
-      <span style={{ fontSize: "44px", color: "var(--text-primary)", lineHeight: 1.1 }}>
+      <span style={{ fontSize: `${getWordFontSize(card.back, 44)}px`, color: "var(--text-primary)", lineHeight: 1.1 }}>
         {card.back}
       </span>
 

@@ -35,18 +35,25 @@ export function RatingButtons({ record, busy, onRate, onKnown }: RatingButtonsPr
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "32px", width: "100%" }}>
-      <div style={{ display: "flex", gap: "16px", width: "100%" }}>
+      <div style={{ display: "flex", gap: "6px", width: "100%" }}>
         {RATINGS.map(({ quality, label, variant, style }, i) => (
           <div
             key={quality}
-            style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}
+            style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}
           >
             <PixelButton
               size="md"
               variant={variant}
               disabled={busy}
               onClick={() => onRate(quality)}
-              style={{ width: "100%", padding: "16px 8px", ...style }}
+              style={{
+                width: "100%",
+                padding: "10px 4px",
+                fontSize: "13px",
+                whiteSpace: "nowrap",
+                minHeight: "52px",
+                ...style,
+              }}
             >
               {label}
             </PixelButton>
