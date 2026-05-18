@@ -105,13 +105,11 @@ export default function DashboardPage() {
       >
         {/* ── Hero strip ── */}
         <PixelCard
-          className="dashboard-hero"
           style={{
             display: "flex",
             gap: "24px",
             alignItems: "center",
             padding: "16px 24px",
-            position: "relative",
           }}
         >
           <div
@@ -133,7 +131,7 @@ export default function DashboardPage() {
               alt={`Level ${level} character`}
             />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
             <span style={{ fontSize: "32px", color: "var(--text-primary)" }}>Guten Tag!</span>
             <div style={{ fontSize: "20px" }}>
               <span style={{ color: "var(--text-muted)" }}>Level {level}: </span>
@@ -147,8 +145,8 @@ export default function DashboardPage() {
                 </span>
               </div>
             )}
+            <GearButton onClick={() => router.push("/settings")} />
           </div>
-          <GearButton onClick={() => router.push("/settings")} />
         </PixelCard>
 
         {/* ── CTA card (dark — gold text OK) ── */}
@@ -321,8 +319,7 @@ function GearButton({ onClick }: { onClick: () => void }) {
     <PixelButton
       size="sm"
       onClick={onClick}
-      className="settings-btn"
-      style={{ position: "absolute", top: "12px", right: "12px" }}
+      style={{ marginTop: "8px", alignSelf: "flex-start" }}
     >
       Settings
     </PixelButton>
