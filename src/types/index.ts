@@ -52,8 +52,8 @@ export type ReviewRecord = {
   status: VocabStatus;
 };
 
-/** 0=Again 3=Hard 4=Good 5=Easy — SM-2 quality scale */
-export type ReviewQuality = 0 | 3 | 4 | 5;
+/** Three-state rating used in the review UI */
+export type ReviewQuality = "not-yet" | "still-learning" | "known";
 
 /** Per-card active state — separates deck membership from SRS data */
 export type DeckCard = {

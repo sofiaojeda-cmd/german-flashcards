@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PixelButton, PixelCard, PixelProgressBar, PixelDialog, PixelDialogActions } from "@/components/pixel";
-import { getDueCards, applyReview, markAsKnown } from "@/lib/srs/sm2";
+import { getDueCards, applyReview } from "@/lib/srs/sm2";
 import { Sprite } from "@/components/Sprite";
 import { ReviewCard } from "./ReviewCard";
 import { RatingButtons } from "./RatingButtons";
@@ -190,8 +190,8 @@ export default function ReviewPage() {
         // DB write failed — still advance so the user isn't stuck
       }
 
-      if (quality === 0) {
-        // "Forgot" — stay on card, show dwell UI
+      if (quality === "not-yet") {
+        // Stay on card, show dwell UI so user studies before moving on
         dispatch({ type: "DWELL_FORGOT" });
       } else {
         dispatch({ type: "ADVANCE", dailyGoal: dailyGoalRef.current });
@@ -199,20 +199,6 @@ export default function ReviewPage() {
     },
     [state]
   );
-
-  const handleKnown = React.useCallback(async () => {
-    if (state.name !== "reviewing") return;
-    dispatch({ type: "RATE_START" });
-
-    const { card } = state.queue[state.index];
-    try {
-      await markAsKnown(card.id);
-    } catch {
-      // best-effort
-    }
-
-    dispatch({ type: "ADVANCE", dailyGoal: dailyGoalRef.current });
-  }, [state]);
 
   const handleAdvanceFromDwell = React.useCallback(() => {
     dispatch({ type: "ADVANCE", dailyGoal: dailyGoalRef.current });
@@ -344,10 +330,8 @@ export default function ReviewPage() {
             </PixelButton>
           ) : (
             <RatingButtons
-              record={record}
               busy={busy}
               onRate={handleRate}
-              onKnown={handleKnown}
             />
           )}
         </div>

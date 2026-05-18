@@ -1,86 +1,54 @@
 "use client";
 
 import * as React from "react";
-import { PixelButton } from "@/components/pixel";
-import { applyReview } from "@/lib/srs/sm2";
-import { formatInterval } from "@/lib/formatInterval";
-import type { ReviewRecord, ReviewQuality } from "@/types";
+import type { ReviewQuality } from "@/types";
 
 type RatingButtonsProps = {
-  record: ReviewRecord;
   busy: boolean;
   onRate: (quality: ReviewQuality) => void;
-  onKnown: () => void;
 };
 
 type Rating = {
   quality: ReviewQuality;
   label: string;
-  variant: "danger" | "secondary" | "blue";
-  style?: React.CSSProperties;
+  bg: string;
+  border: string;
+  color: string;
 };
 
 const RATINGS: Rating[] = [
-  { quality: 0, label: "No idea :(", variant: "danger" },
-  { quality: 3, label: "Struggling",  variant: "secondary" },
-  { quality: 4, label: "Knew it!",    variant: "secondary", style: { backgroundColor: "var(--accent-green)", color: "var(--text-primary)", border: "3px solid var(--border-dark)" } },
-  { quality: 5, label: "Got it :)",   variant: "blue" },
+  { quality: "not-yet",        label: "Not yet",        bg: "#c0392b", border: "#8b1a11", color: "var(--text-light)" },
+  { quality: "still-learning", label: "Still Learning", bg: "#f0c050", border: "#a87820", color: "var(--text-primary)" },
+  { quality: "known",          label: "Known",          bg: "#6ab04c", border: "#3a6b1a", color: "var(--text-light)" },
 ];
 
-export function RatingButtons({ record, busy, onRate, onKnown }: RatingButtonsProps) {
-  const previews = React.useMemo(
-    () => RATINGS.map(({ quality }) => applyReview(record, quality).interval),
-    [record]
-  );
-
+export function RatingButtons({ busy, onRate }: RatingButtonsProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "32px", width: "100%" }}>
-      <div style={{ display: "flex", gap: "var(--rating-btn-row-gap)", width: "100%" }}>
-        {RATINGS.map(({ quality, label, variant, style }, i) => (
-          <div
-            key={quality}
-            style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}
-          >
-            <PixelButton
-              size="md"
-              variant={variant}
-              disabled={busy}
-              onClick={() => onRate(quality)}
-              style={{
-                width: "100%",
-                padding: "var(--rating-btn-padding)",
-                fontSize: "var(--rating-btn-font-size)",
-                whiteSpace: "nowrap",
-                minHeight: "52px",
-                ...style,
-              }}
-            >
-              {label}
-            </PixelButton>
-            <span style={{ fontSize: "16px", color: "var(--text-muted)" }}>
-              {formatInterval(previews[i])}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <button
-        onClick={onKnown}
-        disabled={busy}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: busy ? "not-allowed" : "pointer",
-          fontSize: "18px",
-          color: "var(--text-muted)",
-          fontFamily: "var(--font-pixel)",
-          padding: "4px 8px",
-          textDecoration: "underline",
-          opacity: busy ? 0.5 : 1,
-        }}
-      >
-        I already knew this
-      </button>
+    <div style={{ display: "flex", gap: "var(--rating-btn-row-gap)", width: "100%" }}>
+      {RATINGS.map(({ quality, label, bg, border, color }) => (
+        <button
+          key={quality}
+          disabled={busy}
+          onClick={() => onRate(quality)}
+          style={{
+            flex: 1,
+            minHeight: "52px",
+            padding: "var(--rating-btn-padding)",
+            fontSize: "var(--rating-btn-font-size)",
+            fontFamily: "var(--font-pixel)",
+            whiteSpace: "nowrap",
+            lineHeight: 1,
+            cursor: busy ? "not-allowed" : "pointer",
+            opacity: busy ? 0.45 : 1,
+            backgroundColor: bg,
+            border: `3px solid ${border}`,
+            color,
+            boxShadow: "inset 3px 3px 0 rgba(255,255,255,0.28), inset -2px -2px 0 rgba(0,0,0,0.18)",
+          }}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

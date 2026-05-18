@@ -1,4 +1,4 @@
-import type { ReviewRecord, ReviewQuality, VocabStatus } from "@/types";
+import type { ReviewRecord, ReviewQuality } from "@/types";
 
 // ── Fisher-Yates shuffle ─────────────────────────────────────────
 
@@ -26,69 +26,52 @@ export function fisherYatesShuffle<T>(arr: T[], random: () => number = Math.rand
   return out;
 }
 
-const EASE_MIN = 1.3;
 const EASE_DEFAULT = 2.5;
 const MS_PER_DAY = 86_400_000;
-const MASTERY_INTERVAL = 90; // days
-
-function deriveStatus(interval: number, currentStatus: VocabStatus): VocabStatus {
-  if (currentStatus === "known") return "known";
-  if (interval >= MASTERY_INTERVAL) return "mastered";
-  return "learning";
-}
 
 /**
- * Apply one SM-2 review to a record and return the updated record.
+ * Apply one review to a record and return the updated record.
  * Does not mutate the input — always returns a new object.
  *
- * Quality mapping (4-button UI → SM-2 q):
- *   Again = 0, Hard = 3, Good = 4, Easy = 5
+ *   not-yet        → interval 0 (due immediately, replays this session), status learning
+ *   still-learning → interval 1 day, status learning
+ *   known          → interval 7 days, status known (excluded from future queue)
  */
 export function applyReview(
   record: ReviewRecord,
   quality: ReviewQuality,
   now = Date.now()
 ): ReviewRecord {
-  const { easeFactor, interval, repetitions } = record;
-
-  // Ease factor delta: ΔEF = 0.1 − (5−q)×(0.08 + (5−q)×0.02)
-  const deltaEF = 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02);
-  const newEase = Math.max(EASE_MIN, easeFactor + deltaEF);
-
-  let newInterval: number;
-  let newReps: number;
-
-  if (quality === 0) {
-    // Again — reset to beginning
-    newInterval = 0;
-    newReps = 0;
-  } else {
-    // Hard / Good / Easy — advance
-    if (repetitions === 0) {
-      newInterval = 1;
-    } else if (repetitions === 1) {
-      newInterval = 6;
-    } else {
-      newInterval = Math.round(interval * newEase);
-    }
-    newReps = repetitions + 1;
+  if (quality === "not-yet") {
+    return {
+      ...record,
+      interval: 0,
+      repetitions: 0,
+      dueDate: now,
+      lastReviewed: now,
+      status: "learning",
+    };
   }
 
-  // Cards with interval=0 are due immediately (show again this session)
-  const dueDate = now + newInterval * MS_PER_DAY;
+  if (quality === "still-learning") {
+    return {
+      ...record,
+      interval: 1,
+      repetitions: record.repetitions + 1,
+      dueDate: now + MS_PER_DAY,
+      lastReviewed: now,
+      status: "learning",
+    };
+  }
 
-  const newStatus = quality === 0
-    ? deriveStatus(newInterval, record.status) // Again keeps learning/mastered based on new interval
-    : deriveStatus(newInterval, record.status);
-
+  // "known" — moves card out of the active queue
   return {
     ...record,
-    easeFactor: newEase,
-    interval: newInterval,
-    repetitions: newReps,
-    dueDate,
+    interval: 7,
+    repetitions: record.repetitions + 1,
+    dueDate: now + 7 * MS_PER_DAY,
     lastReviewed: now,
-    status: newStatus,
+    status: "known",
   };
 }
 
