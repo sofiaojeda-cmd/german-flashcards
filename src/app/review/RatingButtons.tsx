@@ -28,6 +28,7 @@ export function RatingButtons({ busy, onRate }: RatingButtonsProps) {
       {RATINGS.map(({ quality, label, bg, border, color }) => (
         <button
           key={quality}
+          className="rating-button"
           disabled={busy}
           onClick={() => onRate(quality)}
           style={{

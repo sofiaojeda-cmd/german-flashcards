@@ -316,43 +316,14 @@ function CTACard({
 
 
 function GearButton({ onClick }: { onClick: () => void }) {
-  const [hovered, setHovered] = React.useState(false);
   return (
-    <button
+    <PixelButton
+      size="sm"
+      variant="ghost"
       onClick={onClick}
-      aria-label="Settings"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: "absolute",
-        top: "12px",
-        right: "12px",
-        background: "none",
-        border: "none",
-        padding: "4px",
-        cursor: "pointer",
-        color: hovered ? "var(--text-primary)" : "var(--text-muted)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      style={{ position: "absolute", top: "12px", right: "12px" }}
     >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        shapeRendering="crispEdges"
-        aria-hidden
-      >
-        <rect x="8"  y="4"  width="8"  height="16" />
-        <rect x="4"  y="8"  width="16" height="8"  />
-        <rect x="6"  y="6"  width="12" height="12" />
-        <rect x="10" y="2"  width="4"  height="4"  />
-        <rect x="10" y="18" width="4"  height="4"  />
-        <rect x="2"  y="10" width="4"  height="4"  />
-        <rect x="18" y="10" width="4"  height="4"  />
-      </svg>
-    </button>
+      Settings
+    </PixelButton>
   );
 }

@@ -207,6 +207,15 @@ h4 { font-size: 28px; line-height: 1.2; }
 .card-flip-to-back  { animation: flip-to-back  240ms steps(3, end) forwards; }
 .card-flip-to-front { animation: flip-to-front 240ms steps(3, end) forwards; }
 
+/* ── Review rating button interactions ──────────────────────── */
+.rating-button:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.rating-button:active:not(:disabled) {
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18) !important;
+  transform: translate(2px, 2px);
+}
+
 /* ── XP float animation ──────────────────────────────────────── */
 @keyframes xp-float {
   0%   { opacity: 1; transform: translateY(0);    }

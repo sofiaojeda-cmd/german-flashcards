@@ -241,6 +241,74 @@ export default function ComponentsPage() {
         </div>
       </Section>
 
+      {/* ── Review Rating Buttons ────────────────────────────── */}
+      <Section title="Review Rating Buttons">
+        <Row label="Default">
+          {(
+            [
+              { label: "Not yet",        bg: "#c0392b", border: "#8b1a11", color: "var(--text-light)" },
+              { label: "Still Learning", bg: "#f0c050", border: "#a87820", color: "var(--text-primary)" },
+              { label: "Known",          bg: "#6ab04c", border: "#3a6b1a", color: "var(--text-light)" },
+            ] as const
+          ).map(({ label, bg, border, color }) => (
+            <button
+              key={label}
+              className="rating-button"
+              style={{
+                minHeight: "52px",
+                padding: "16px 24px",
+                fontSize: "22px",
+                fontFamily: "var(--font-pixel)",
+                whiteSpace: "nowrap",
+                lineHeight: 1,
+                cursor: "pointer",
+                backgroundColor: bg,
+                border: `3px solid ${border}`,
+                color,
+                boxShadow: "inset 3px 3px 0 rgba(255,255,255,0.28), inset -2px -2px 0 rgba(0,0,0,0.18)",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </Row>
+        <Row label="Disabled">
+          {(
+            [
+              { label: "Not yet",        bg: "#c0392b", border: "#8b1a11", color: "var(--text-light)" },
+              { label: "Still Learning", bg: "#f0c050", border: "#a87820", color: "var(--text-primary)" },
+              { label: "Known",          bg: "#6ab04c", border: "#3a6b1a", color: "var(--text-light)" },
+            ] as const
+          ).map(({ label, bg, border, color }) => (
+            <button
+              key={label}
+              disabled
+              style={{
+                minHeight: "52px",
+                padding: "16px 24px",
+                fontSize: "22px",
+                fontFamily: "var(--font-pixel)",
+                whiteSpace: "nowrap",
+                lineHeight: 1,
+                cursor: "not-allowed",
+                opacity: 0.45,
+                backgroundColor: bg,
+                border: `3px solid ${border}`,
+                color,
+                boxShadow: "inset 3px 3px 0 rgba(255,255,255,0.28), inset -2px -2px 0 rgba(0,0,0,0.18)",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </Row>
+        <Row label="">
+          <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+            Used in the review screen after flipping a card. Bevel shadow (lighter top-left, darker bottom-right) matches PixelCheckbox. Gold button uses dark text for contrast.
+          </p>
+        </Row>
+      </Section>
+
       {/* ── Gender color reference ────────────────────────────── */}
       <Section title="Article Gender Colors">
         <Row label="">
