@@ -23,6 +23,11 @@ export default function SettingsPage() {
   const [topicBusy, setTopicBusy] = React.useState(false);
   const [showResetDialog, setShowResetDialog] = React.useState(false);
   const [resetting, setResetting] = React.useState(false);
+  const [exportMsg, setExportMsg] = React.useState("");
+  const [importError, setImportError] = React.useState("");
+  const [importBusy, setImportBusy] = React.useState(false);
+  const [pendingBackup, setPendingBackup] = React.useState<import("@/lib/backup/export").BackupSchema | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     async function load() {
@@ -104,6 +109,55 @@ export default function SettingsPage() {
       }
     } finally {
       setTopicBusy(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExportMsg("");
+    try {
+      const { exportProgress } = await import("@/lib/backup/export");
+      await exportProgress();
+      setExportMsg("Backup downloaded!");
+      setTimeout(() => setExportMsg(""), 3000);
+    } catch {
+      setExportMsg("Export failed. Please try again.");
+      setTimeout(() => setExportMsg(""), 4000);
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImportError("");
+    const raw = await file.text();
+    const { validateBackup } = await import("@/lib/backup/import");
+    const result = validateBackup(raw);
+    if (!result.ok) {
+      const msgs: Record<string, string> = {
+        "invalid-json": "That doesn't look like a valid backup file.",
+        "incompatible-version": "This backup is from an incompatible version.",
+        "missing-fields": "This backup is missing some data and can't be imported.",
+      };
+      setImportError(msgs[result.error] ?? "Import failed.");
+      return;
+    }
+    setPendingBackup(result.backup);
+  };
+
+  const handleConfirmImport = async () => {
+    if (!pendingBackup) return;
+    setImportBusy(true);
+    try {
+      const { restoreBackup } = await import("@/lib/backup/import");
+      await restoreBackup(pendingBackup);
+      setPendingBackup(null);
+      setTimeout(() => window.location.reload(), 800);
+    } catch {
+      setImportError("Restore failed. Your existing data is intact.");
+      setPendingBackup(null);
+    } finally {
+      setImportBusy(false);
     }
   };
 
@@ -244,6 +298,44 @@ export default function SettingsPage() {
           </div>
         </Section>
 
+        {/* ── Backup ── */}
+        <Section title="Backup your progress">
+          <p style={{ fontSize: "18px", color: "var(--text-primary)", margin: 0, lineHeight: 1.5 }}>
+            Save your progress to a file you can keep safe. You can import it later to restore
+            everything — useful if you switch browsers or devices.
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: "none" }}
+            onChange={handleImportFile}
+          />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+            <PixelButton
+              size="sm"
+              onClick={handleExport}
+              style={{ flex: 1, minWidth: "180px" }}
+            >
+              Export progress
+            </PixelButton>
+            <PixelButton
+              variant="secondary"
+              size="sm"
+              onClick={() => { setImportError(""); fileInputRef.current?.click(); }}
+              style={{ flex: 1, minWidth: "180px" }}
+            >
+              Import progress
+            </PixelButton>
+          </div>
+          {exportMsg && (
+            <p style={{ fontSize: "17px", color: "var(--accent-green)", margin: 0 }}>{exportMsg}</p>
+          )}
+          {importError && (
+            <p style={{ fontSize: "17px", color: "var(--accent-red)", margin: 0 }}>{importError}</p>
+          )}
+        </Section>
+
         {/* ── Audio ── */}
         <Section title="Audio">
           <div
@@ -334,6 +426,41 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* ── Import confirmation dialog ── */}
+      <PixelDialog
+        open={!!pendingBackup}
+        onOpenChange={(open) => { if (!open) setPendingBackup(null); }}
+        title="Replace your progress?"
+        portrait={<Sprite name="mascot-sad" size={72} />}
+      >
+        <p style={{ fontSize: "20px", color: "var(--text-primary)", margin: "0 0 16px", lineHeight: 1.4 }}>
+          Importing this backup will replace your current progress. This can&apos;t be undone.
+          {pendingBackup && (
+            <> The backup was created on{" "}
+              <strong>{new Date(pendingBackup.exportedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</strong>.
+            </>
+          )}
+        </p>
+        <PixelDialogActions>
+          <PixelButton
+            size="sm"
+            variant="danger"
+            disabled={importBusy}
+            onClick={handleConfirmImport}
+          >
+            {importBusy ? "Restoring…" : "Yes, replace"}
+          </PixelButton>
+          <PixelButton
+            size="sm"
+            variant="default"
+            disabled={importBusy}
+            onClick={() => setPendingBackup(null)}
+          >
+            Cancel
+          </PixelButton>
+        </PixelDialogActions>
+      </PixelDialog>
 
       {/* ── Reset confirmation dialog ── */}
       <PixelDialog
