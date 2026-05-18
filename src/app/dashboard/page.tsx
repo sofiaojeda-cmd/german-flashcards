@@ -202,9 +202,9 @@ export default function DashboardPage() {
               <PixelProgressBar
                 segments={20}
                 bands={[
-                  { fraction: vocabStats.learning / vocabStats.total, color: "var(--accent-blue)" },
-                  { fraction: vocabStats.mastered / vocabStats.total, color: "var(--accent-green)" },
-                  { fraction: vocabStats.known   / vocabStats.total, color: "var(--accent-gold)" },
+                  { fraction: vocabStats.learning / vocabStats.total, color: "var(--accent-gold)" },
+                  { fraction: vocabStats.mastered / vocabStats.total, color: "var(--accent-mastered)" },
+                  { fraction: vocabStats.known   / vocabStats.total, color: "var(--accent-green)" },
                 ]}
               />
               <p style={{ fontSize: "16px", color: "var(--text-muted)", margin: 0 }}>

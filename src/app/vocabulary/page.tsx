@@ -38,25 +38,35 @@ const ARTICLE_COLOR: Record<string, string> = {
 
 type BadgeStyle = { bg: string; border: string; color: string; boxShadow: string };
 
+const BEVEL = "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)";
+
 const STATUS_BADGE: Record<string, BadgeStyle> = {
   learning: {
-    bg:        "var(--accent-blue)",
-    border:    "2px solid #2a5c8a",
-    color:     "var(--text-light)",
-    boxShadow: "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)",
+    bg:        "var(--accent-gold)",
+    border:    "2px solid #a87820",
+    color:     "var(--text-primary)",
+    boxShadow: BEVEL,
   },
   mastered: {
+    bg:        "var(--accent-mastered)",
+    border:    "2px solid #8a4e10",
+    color:     "var(--text-light)",
+    boxShadow: BEVEL,
+  },
+  known: {
     bg:        "var(--accent-green)",
     border:    "2px solid #3a6b1a",
     color:     "var(--text-light)",
-    boxShadow: "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)",
+    boxShadow: BEVEL,
   },
-  known: {
-    bg:        "var(--accent-gold)",
-    border:    "2px solid #a07810",
-    color:     "var(--text-primary)",
-    boxShadow: "inset 2px 2px 0 rgba(255,255,255,0.28), inset -1px -1px 0 rgba(0,0,0,0.18)",
-  },
+};
+
+// When a status tab is active, it takes the same color as its badge.
+// "all" falls back to the default PixelButton selected style (no override).
+const TAB_SELECTED_STYLE: Partial<Record<Tab, React.CSSProperties>> = {
+  learning: { backgroundColor: "var(--accent-gold)",     borderColor: "#a87820", color: "var(--text-primary)" },
+  mastered: { backgroundColor: "var(--accent-mastered)", borderColor: "#8a4e10", color: "var(--text-light)" },
+  known:    { backgroundColor: "var(--accent-green)",    borderColor: "#3a6b1a", color: "var(--text-light)" },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -330,7 +340,11 @@ export default function VocabularyPage() {
                 size="sm"
                 selected={activeTab === tab}
                 onClick={() => switchTab(tab)}
-                style={{ flex: 1, textAlign: "center" }}
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  ...(activeTab === tab ? TAB_SELECTED_STYLE[tab] : {}),
+                }}
               >
                 {label}
               </PixelButton>
