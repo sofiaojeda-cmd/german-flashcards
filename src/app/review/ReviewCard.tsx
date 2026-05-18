@@ -73,7 +73,7 @@ export function ReviewCard({ card, flipped, onFlip }: ReviewCardProps) {
             : "4px 4px 0 var(--shadow)",
           border: interactive && hovered
             ? "3px solid var(--accent-gold)"
-            : undefined,
+            : "3px solid transparent",
           transition: "none",
         }}
       >

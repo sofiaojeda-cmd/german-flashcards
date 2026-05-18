@@ -37,6 +37,12 @@
   --accent-blue:    #4a90d9;
   --accent-purple:   #8e44ad;
   --accent-mastered: #c07830;
+
+  /* ── Component border tokens (darker shade of own fill color) ── */
+  --button-default-border:  #5c3010;
+  --button-danger-border:   #8b1a11;
+  --button-blue-border:     #2a5c8a;
+  --input-border:           #b07830;
   --shadow:         #1a0f08;
 
   /* ── Notebook / folder tokens ── */

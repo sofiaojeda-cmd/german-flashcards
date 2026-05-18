@@ -44,7 +44,7 @@ export function RatingButtons({ busy, onRate }: RatingButtonsProps) {
             backgroundColor: bg,
             border: `3px solid ${border}`,
             color,
-            boxShadow: "inset 3px 3px 0 rgba(255,255,255,0.28), inset -2px -2px 0 rgba(0,0,0,0.18)",
+            boxShadow: "inset 3px 3px 0 rgba(255,255,255,0.28), inset -2px -2px 0 rgba(0,0,0,0.18), 3px 3px 0 var(--shadow)",
           }}
         >
           {label}

@@ -319,7 +319,6 @@ function GearButton({ onClick }: { onClick: () => void }) {
   return (
     <PixelButton
       size="sm"
-      variant="ghost"
       onClick={onClick}
       style={{ position: "absolute", top: "12px", right: "12px" }}
     >

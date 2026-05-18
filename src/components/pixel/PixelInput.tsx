@@ -50,7 +50,7 @@ export function PixelInput({ label, hint, error, id, style, leftIcon, ...props }
           style={{
             backgroundColor: isDisabled ? "var(--bg-panel-dark)" : "var(--bg-panel)",
             color: isDisabled ? "var(--text-muted)" : "var(--text-primary)",
-            border: `2px solid ${isDisabled ? "var(--border-mid)" : "var(--border-dark)"}`,
+            border: `2px solid ${isDisabled ? "var(--border-mid)" : "var(--input-border)"}`,
             boxShadow: isDisabled ? "none" : "inset 2px 2px 0 var(--shadow)",
             paddingTop: "6px",
             paddingBottom: "6px",

@@ -18,19 +18,19 @@ const variantStyles: Record<Variant, React.CSSProperties> = {
   default: {
     backgroundColor: "var(--bg-panel-dark)",
     color: "var(--accent-gold)",
-    border: "3px solid var(--border-dark)",
+    border: "3px solid var(--button-default-border)",
     boxShadow: "3px 3px 0 var(--shadow)",
   },
   secondary: {
     backgroundColor: "var(--bg-panel-dark)",
     color: "var(--text-light)",
-    border: "3px solid var(--border-dark)",
+    border: "3px solid var(--button-default-border)",
     boxShadow: "3px 3px 0 var(--shadow)",
   },
   danger: {
     backgroundColor: "var(--accent-red)",
     color: "var(--text-light)",
-    border: "3px solid var(--border-dark)",
+    border: "3px solid var(--button-danger-border)",
     boxShadow: "3px 3px 0 var(--shadow)",
   },
   // Plain text button — transparent bg, no border/shadow. Use on parchment (--bg-panel).
@@ -43,7 +43,7 @@ const variantStyles: Record<Variant, React.CSSProperties> = {
   blue: {
     backgroundColor: "var(--accent-blue)",
     color: "var(--text-light)",
-    border: "3px solid var(--border-dark)",
+    border: "3px solid var(--button-blue-border)",
     boxShadow: "3px 3px 0 var(--shadow)",
   },
 };

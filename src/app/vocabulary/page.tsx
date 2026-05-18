@@ -27,7 +27,7 @@ import type { VocabRow } from "@/lib/db/vocabulary";
 // ── Constants ─────────────────────────────────────────────────────
 
 type Tab = "all" | "learning" | "mastered" | "known";
-const TABS: Tab[] = ["all", "learning", "mastered", "known"];
+const TABS: Tab[] = ["all", "learning", "known", "mastered"];
 const MS_PER_DAY = 86_400_000;
 
 const ARTICLE_COLOR: Record<string, string> = {
@@ -61,13 +61,6 @@ const STATUS_BADGE: Record<string, BadgeStyle> = {
   },
 };
 
-// When a status tab is active, it takes the same color as its badge.
-// "all" falls back to the default PixelButton selected style (no override).
-const TAB_SELECTED_STYLE: Partial<Record<Tab, React.CSSProperties>> = {
-  learning: { backgroundColor: "var(--accent-gold)",     border: "3px solid #a87820", color: "var(--text-primary)" },
-  mastered: { backgroundColor: "var(--accent-mastered)", border: "3px solid #8a4e10", color: "var(--text-light)" },
-  known:    { backgroundColor: "var(--accent-green)",    border: "3px solid #3a6b1a", color: "var(--text-light)" },
-};
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -330,9 +323,9 @@ export default function VocabularyPage() {
                 ? `All (${collected})`
                 : tab === "learning"
                 ? `Learning (${counts.learning})`
-                : tab === "mastered"
-                ? `Mastered (${counts.mastered})`
-                : `Known (${counts.known})`;
+                : tab === "known"
+                ? `Known (${counts.known})`
+                : `Mastered (${counts.mastered})`;
             return (
               <PixelButton
                 key={tab}
@@ -340,11 +333,7 @@ export default function VocabularyPage() {
                 size="sm"
                 selected={activeTab === tab}
                 onClick={() => switchTab(tab)}
-                style={{
-                  flex: 1,
-                  textAlign: "center",
-                  ...(activeTab === tab ? TAB_SELECTED_STYLE[tab] : {}),
-                }}
+                style={{ flex: 1, textAlign: "center" }}
               >
                 {label}
               </PixelButton>
