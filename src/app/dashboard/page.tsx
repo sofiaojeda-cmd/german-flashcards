@@ -105,6 +105,7 @@ export default function DashboardPage() {
       >
         {/* ── Hero strip ── */}
         <PixelCard
+          className="dashboard-hero"
           style={{
             display: "flex",
             gap: "24px",
@@ -113,7 +114,6 @@ export default function DashboardPage() {
             position: "relative",
           }}
         >
-          <GearButton onClick={() => router.push("/settings")} />
           <div
             style={{
               width: "108px",
@@ -148,6 +148,7 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+          <GearButton onClick={() => router.push("/settings")} />
         </PixelCard>
 
         {/* ── CTA card (dark — gold text OK) ── */}
@@ -320,6 +321,7 @@ function GearButton({ onClick }: { onClick: () => void }) {
     <PixelButton
       size="sm"
       onClick={onClick}
+      className="settings-btn"
       style={{ position: "absolute", top: "12px", right: "12px" }}
     >
       Settings
