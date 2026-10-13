@@ -36,7 +36,7 @@ data/cards/*.json  ──(seed on first launch)──▶  IndexedDB (Dexie)
 ```
 
 ### Key directories
-- `data/cards/` — 16 hand-curated JSON files (categories.json + 15 B1 deck files). **Do not regenerate or modify card data without confirming with the user.**
+- `data/cards/` — hand-curated JSON files, one per category per CEFR level, named `{level}-{category}.json`, plus `categories.json` which declares which files belong to which category at which level. **Do not regenerate or modify card data without confirming with the user.**
 - `src/types/index.ts` — canonical types: `Card`, `Category`, `ReviewRecord`, `UserSettings`, `UserProgress`
 - `src/lib/srs/sm2.ts` — SM-2 spaced repetition algorithm (unit tests in `sm2.test.ts`)
 - `src/lib/levels.ts` — CEFR ordering and cumulative level selection

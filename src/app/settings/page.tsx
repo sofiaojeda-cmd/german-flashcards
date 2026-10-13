@@ -75,6 +75,14 @@ export default function SettingsPage() {
     return CEFR_ORDER.filter((l) => found.has(l));
   }, [categories]);
 
+  // Topics whose cards all sit at levels the user has turned off contribute
+  // nothing to the deck. They stay toggleable, but they say so.
+  const hasContentAtLevel = React.useCallback(
+    (cat: Category) =>
+      (data?.levels ?? []).some((l) => (cat.files?.[l]?.length ?? 0) > 0),
+    [data?.levels]
+  );
+
   const handleLevelToggle = async (level: CEFRLevel, checked: boolean) => {
     if (!data) return;
     const next = checked
@@ -341,13 +349,29 @@ export default function SettingsPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {categories.map((cat) => {
                 const isActive = localTopics.includes(cat.id);
+                const hasCards = hasContentAtLevel(cat);
                 return (
                   <PixelCheckbox
                     key={cat.id}
                     checked={isActive}
                     disabled={topicBusy}
                     onChange={(checked) => handleTopicToggle(cat.id, checked)}
-                    label={cat.nameEn}
+                    label={
+                      <>
+                        <span>{cat.nameEn}</span>
+                        {!hasCards && (
+                          <span
+                            style={{
+                              fontSize: "16px",
+                              color: "var(--text-muted)",
+                              marginLeft: "8px",
+                            }}
+                          >
+                            no cards at your levels
+                          </span>
+                        )}
+                      </>
+                    }
                   />
                 );
               })}

@@ -282,19 +282,35 @@ export default function ReviewPage() {
               <BackArrow onClick={() => setShowExitDialog(true)} />
               <span style={{ color: "var(--text-muted)" }}>Card {index + 1} of {queue.length}</span>
             </div>
-            {card.topics[0] && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {/* Level sits next to the topic so a card that feels easy or hard
+                  explains itself without leaving the session. */}
               <span
                 style={{
                   color: "var(--text-muted)",
                   border: "2px solid var(--text-muted)",
-                  padding: "4px 12px",
-                  fontSize: "18px",
+                  padding: "2px 8px",
+                  fontSize: "15px",
                   fontFamily: "var(--font-pixel)",
                 }}
+                title={`CEFR level ${card.level}`}
               >
-                {card.topics[0]}
+                {card.level}
               </span>
-            )}
+              {card.topics[0] && (
+                <span
+                  style={{
+                    color: "var(--text-muted)",
+                    border: "2px solid var(--text-muted)",
+                    padding: "4px 12px",
+                    fontSize: "18px",
+                    fontFamily: "var(--font-pixel)",
+                  }}
+                >
+                  {card.topics[0]}
+                </span>
+              )}
+            </div>
           </div>
           <PixelProgressBar
             value={progress}

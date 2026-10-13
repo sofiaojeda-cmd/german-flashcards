@@ -65,6 +65,7 @@ export default function OnboardingPage() {
   const [livesInBerlin, setLivesInBerlin] = React.useState(false);
   const [dailyGoal, setDailyGoal] = React.useState(20);
   const [categories, setCategories] = React.useState<Category[]>([]);
+  const [allCategories, setAllCategories] = React.useState<Category[]>([]);
   const [levelsWithContent, setLevelsWithContent] = React.useState<Set<string>>(new Set());
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState("");
@@ -87,6 +88,7 @@ export default function OnboardingPage() {
             )
           )
         );
+        setAllCategories(all);
         setCategories(all.filter((c) => c.id !== "berlin"));
       });
   }, []);
@@ -97,13 +99,43 @@ export default function OnboardingPage() {
     );
   };
 
-  const allTopicsSelected = categories.length > 0 && topics.length === categories.length;
+  const selectedLevels = React.useMemo(() => cumulativeLevels(level), [level]);
+
+  // A topic is worth offering only when it has cards at a level the user picked.
+  // Offering one that would contribute nothing is how you end up staring at an
+  // empty deck wondering what you did wrong.
+  const hasContentAtLevel = React.useCallback(
+    (cat: Category) => selectedLevels.some((l) => (cat.files?.[l]?.length ?? 0) > 0),
+    [selectedLevels]
+  );
+
+  const availableCategories = React.useMemo(
+    () => categories.filter(hasContentAtLevel),
+    [categories, hasContentAtLevel]
+  );
+
+  const berlinCategory = React.useMemo(
+    () => allCategories.find((c) => c.id === "berlin"),
+    [allCategories]
+  );
+  const berlinAvailable = !!berlinCategory && hasContentAtLevel(berlinCategory);
+
+  // Going back and lowering the level can withdraw topics that were already
+  // ticked. Drop them so the picker and what gets saved never disagree.
+  React.useEffect(() => {
+    const offered = new Set(availableCategories.map((c) => c.id));
+    setTopics((prev) => prev.filter((t) => offered.has(t)));
+    if (!berlinAvailable) setLivesInBerlin(false);
+  }, [availableCategories, berlinAvailable]);
+
+  const allTopicsSelected =
+    availableCategories.length > 0 && topics.length === availableCategories.length;
 
   const handleSelectAll = () => {
     if (allTopicsSelected) {
       setTopics([]);
     } else {
-      setTopics(categories.map((c) => c.id));
+      setTopics(availableCategories.map((c) => c.id));
     }
   };
 
@@ -280,16 +312,16 @@ export default function OnboardingPage() {
               }}
             >
               <p style={{ fontSize: "18px", color: "var(--text-muted)", margin: 0 }}>
-                Select at least one topic to study.
+                Topics with cards at {selectedLevels.join(", ")}.
               </p>
               <button
                 onClick={handleSelectAll}
-                disabled={categories.length === 0}
+                disabled={availableCategories.length === 0}
                 style={{
                   background: "none",
                   border: "none",
                   padding: 0,
-                  cursor: categories.length === 0 ? "not-allowed" : "pointer",
+                  cursor: availableCategories.length === 0 ? "not-allowed" : "pointer",
                   fontSize: "17px",
                   color: "var(--text-primary)",
                   fontFamily: "var(--font-pixel)",
@@ -303,10 +335,14 @@ export default function OnboardingPage() {
 
             {/* Topic chips */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
-              {categories.length === 0 ? (
+              {allCategories.length === 0 ? (
                 <p style={{ fontSize: "18px", color: "var(--text-muted)" }}>Loading topics…</p>
+              ) : availableCategories.length === 0 ? (
+                <p style={{ fontSize: "18px", color: "var(--text-muted)" }}>
+                  No topics have cards at this level yet. Go back and pick a higher one.
+                </p>
               ) : (
-                categories.map((cat) => (
+                availableCategories.map((cat) => (
                   <PixelButton
                     key={cat.id}
                     size="sm"
@@ -320,8 +356,9 @@ export default function OnboardingPage() {
               )}
             </div>
 
-            {/* Berlin checkbox — separate control */}
-            <div style={{ marginBottom: "16px" }}>
+            {/* Berlin checkbox — separate control, hidden when its deck has
+                nothing at the chosen levels */}
+            <div style={{ marginBottom: "16px", display: berlinAvailable ? undefined : "none" }}>
               <PixelCheckbox
                 checked={livesInBerlin}
                 onChange={setLivesInBerlin}
