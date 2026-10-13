@@ -10,8 +10,16 @@ const vt323 = VT323({
 });
 
 export const metadata: Metadata = {
+  // metadataBase hace que og:image salga como URL absoluta. Sin esto Next
+  // arma una relativa y varias apps de mensajeria no muestran la imagen.
+  metadataBase: new URL("https://german-flashcards-xi.vercel.app"),
   title: "German Flashcards",
   description: "Learn German vocabulary with spaced repetition",
+  openGraph: {
+    title: "German Flashcards",
+    description: "Learn German vocabulary with spaced repetition",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
