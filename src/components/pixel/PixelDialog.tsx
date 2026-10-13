@@ -79,11 +79,15 @@ export function PixelDialog({
                 style={{
                   alignSelf: "flex-start",
                   flexShrink: 0,
-                  width: "108px",
-                  height: "108px",
-                  border: "3px solid var(--border-dark)",
-                  boxShadow: "4px 4px 0 var(--shadow)",
-                  backgroundColor: "var(--bg-panel-dark)",
+                  width: "144px",
+                  height: "144px",
+                  border: "4px solid var(--border-dark)",
+                  borderRadius: "10px",
+                  boxShadow:
+                    "inset 0 0 0 4px var(--portrait-sky-dark), " +
+                    "inset 0 0 0 8px var(--portrait-sky-mid), " +
+                    "4px 4px 0 var(--shadow)",
+                  backgroundColor: "var(--portrait-sky)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",

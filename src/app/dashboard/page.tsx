@@ -8,6 +8,7 @@ import { xpForLevel } from "@/lib/gamification";
 import { getTitleForLevel } from "@/lib/levelTitles";
 import { PixelCard, PixelButton, PixelProgressBar } from "@/components/pixel";
 import { Sprite } from "@/components/Sprite";
+import { characterForLevel } from "@/lib/characters";
 
 type VocabStats = { total: number; new: number; learning: number; mastered: number; known: number };
 
@@ -134,20 +135,24 @@ export default function DashboardPage() {
         >
           <div
             style={{
-              width: "108px",
-              height: "108px",
+              width: "144px",
+              height: "144px",
               flexShrink: 0,
-              backgroundColor: "var(--bg-panel-dark)",
-              border: "3px solid var(--border-dark)",
-              boxShadow: "4px 4px 0 var(--shadow)",
+              backgroundColor: "var(--portrait-sky)",
+              border: "4px solid var(--border-dark)",
+              borderRadius: "10px",
+              boxShadow:
+                "inset 0 0 0 4px var(--portrait-sky-dark), " +
+                "inset 0 0 0 8px var(--portrait-sky-mid), " +
+                "4px 4px 0 var(--shadow)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <Sprite
-              name={`character-level-${Math.min(level, 15)}`}
-              size={96}
+              name={`character-${characterForLevel(level)}`}
+              size={128}
               alt={`Level ${level} character`}
             />
           </div>

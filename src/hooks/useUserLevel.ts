@@ -3,7 +3,7 @@ import * as React from "react";
 /**
  * Returns the user's current level (1–15) from IndexedDB.
  * Starts at 1 and updates once the DB read resolves.
- * Use this to drive character-level-{N} sprite selection.
+ * Pasalo por characterForLevel() de @/lib/characters para elegir el avatar.
  */
 export function useUserLevel(): number {
   const [level, setLevel] = React.useState(1);

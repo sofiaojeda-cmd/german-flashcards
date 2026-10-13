@@ -39,6 +39,13 @@
   --accent-purple:   #8e44ad;
   --accent-mastered: #c07830;
 
+  /* ── Ventana del retrato ──
+     Unico tono frio de la paleta, y a proposito: la nutria es marron y se
+     funde contra cualquier fondo calido. Se usa solo detras de un sprite. */
+  --portrait-sky:      #B9DCE7;
+  --portrait-sky-mid:  #93C4D6;
+  --portrait-sky-dark: #6FA3B8;
+
   /* Primary action fill — the one call to action per screen (dashboard CTA).
      Cream on this reads 4.3:1, which clears AA at the lg button size (28px)
      but not at body size. Keep it on large buttons only. */

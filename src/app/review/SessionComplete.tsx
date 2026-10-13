@@ -38,7 +38,7 @@ export function SessionComplete({ reviewed, xpEarned, dailyGoalHit }: SessionCom
       open
       onOpenChange={() => {}}
       title="Session complete!"
-      portrait={<Sprite name="mascot-happy" size={72} />}
+      portrait={<Sprite name="mascot-happy" size={128} />}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "16px" }}>
         <Row label="Cards reviewed" value={String(reviewed)} />

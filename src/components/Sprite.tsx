@@ -2,7 +2,8 @@
  * Sprite — renders a pixel-art PNG from /public/sprites/.
  *
  * Two character types:
- *   - character-level-{1..15}.png — the USER's avatar, levels up with XP.
+ *   - character-{id}.png — the USER's avatar. Variantes sin jerarquia;
+ *     cual toca lo decide characterForLevel() en @/lib/characters.
  *     Use with useUserLevel(). Appears in dashboard HeroStrip and profile views only.
  *   - mascot-{happy,sad}.png — the app's GUIDE, always a mature neutral otter.
  *     Use in dialogs and empty states. Never swapped for the user's level character.
@@ -12,7 +13,7 @@
  *   - UI icons: streak-flame (32×32), xp-coin/search/gear (24×24), level-trophy (96×96)
  *
  * Usage:
- *   <Sprite name={`character-level-${userLevel}`} size={96} />  ← dashboard
+ *   <Sprite name={`character-${characterForLevel(level)}`} size={128} /> ← dashboard
  *   <Sprite name="mascot-sad" size={72} />                       ← dialogs
  *   <Sprite name="category-food" size={48} alt="Food category" />
  */
@@ -20,8 +21,8 @@
 import * as React from "react";
 
 const DEFAULT_SIZES: Record<string, number> = {
-  "mascot-happy": 96,
-  "mascot-sad": 96,
+  "mascot-happy": 128,
+  "mascot-sad": 128,
   "level-trophy": 96,
   "streak-flame": 32,
   "xp-coin": 24,

@@ -520,7 +520,7 @@ export default function SettingsPage() {
         open={!!pendingBackup}
         onOpenChange={(open) => { if (!open) setPendingBackup(null); }}
         title="Replace your progress?"
-        portrait={<Sprite name="mascot-sad" size={72} />}
+        portrait={<Sprite name="mascot-sad" size={128} />}
       >
         <p style={{ fontSize: "20px", color: "var(--text-primary)", margin: "0 0 16px", lineHeight: 1.4 }}>
           Importing this backup will replace your current progress. This can&apos;t be undone.
@@ -555,7 +555,7 @@ export default function SettingsPage() {
         open={showResetDialog}
         onOpenChange={(open) => { if (!open) setShowResetDialog(false); }}
         title="Reset everything?"
-        portrait={<Sprite name="mascot-sad" size={72} />}
+        portrait={<Sprite name="mascot-sad" size={128} />}
       >
         <p style={{ fontSize: "20px", color: "var(--text-primary)", margin: "0 0 16px", lineHeight: 1.4 }}>
           This permanently deletes your streak, XP, and all card review history. You can&apos;t
