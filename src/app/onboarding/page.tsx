@@ -101,6 +101,14 @@ export default function OnboardingPage() {
 
   const selectedLevels = React.useMemo(() => cumulativeLevels(level), [level]);
 
+  // Only levels that actually have cards are offered. A level with nothing
+  // behind it is noise in a first-run flow, so B2 and C1 simply are not there
+  // until some category ships a file for them.
+  const availableLevels = React.useMemo(
+    () => LEVELS.filter((l) => levelsWithContent.has(l.value)),
+    [levelsWithContent]
+  );
+
   // A topic is worth offering only when it has cards at a level the user picked.
   // Offering one that would contribute nothing is how you end up staring at an
   // empty deck wondering what you did wrong.
@@ -120,16 +128,19 @@ export default function OnboardingPage() {
   );
   const berlinAvailable = !!berlinCategory && hasContentAtLevel(berlinCategory);
 
-  // Going back and lowering the level can withdraw topics that were already
-  // ticked. Drop them so the picker and what gets saved never disagree.
-  React.useEffect(() => {
+  // Lowering the level can withdraw topics that were already ticked. Rather than
+  // erase the choice, the selection is narrowed to what is on offer at render
+  // time: raising the level again brings the earlier picks back, and nothing the
+  // user cannot currently see ever reaches the saved settings.
+  const selectedTopics = React.useMemo(() => {
     const offered = new Set(availableCategories.map((c) => c.id));
-    setTopics((prev) => prev.filter((t) => offered.has(t)));
-    if (!berlinAvailable) setLivesInBerlin(false);
-  }, [availableCategories, berlinAvailable]);
+    return topics.filter((t) => offered.has(t));
+  }, [topics, availableCategories]);
+
+  const selectedBerlin = livesInBerlin && berlinAvailable;
 
   const allTopicsSelected =
-    availableCategories.length > 0 && topics.length === availableCategories.length;
+    availableCategories.length > 0 && selectedTopics.length === availableCategories.length;
 
   const handleSelectAll = () => {
     if (allTopicsSelected) {
@@ -139,19 +150,21 @@ export default function OnboardingPage() {
     }
   };
 
-  const canProceedStep3 = topics.length > 0 || livesInBerlin;
+  const canProceedStep3 = selectedTopics.length > 0 || selectedBerlin;
 
   const handleDone = async () => {
     setSaving(true);
     setSaveError("");
     try {
-      const allTopics = livesInBerlin ? [...new Set([...topics, "berlin"])] : topics;
+      const allTopics = selectedBerlin
+        ? [...new Set([...selectedTopics, "berlin"])]
+        : selectedTopics;
       const settings: UserSettings = {
         // Picking a level opts you into everything below it; Settings narrows it.
         levels: cumulativeLevels(level),
         topics: allTopics,
         dailyGoal,
-        livesInBerlin,
+        livesInBerlin: selectedBerlin,
         audioEnabled: false,
         onboardingComplete: true,
       };
@@ -255,16 +268,16 @@ export default function OnboardingPage() {
               Your level includes everything below it. Narrow it later in Settings.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "24px" }}>
-              {LEVELS.map(({ value, label, description }) => {
-                const available = levelsWithContent.has(value);
-                return (
+              {availableLevels.length === 0 ? (
+                <p style={{ fontSize: "18px", color: "var(--text-muted)" }}>Loading levels…</p>
+              ) : (
+              availableLevels.map(({ value, label, description }) => (
                 <PixelButton
                   key={value}
                   variant="secondary"
                   size="sm"
-                  selected={available && level === value}
-                  disabled={!available}
-                  onClick={() => available && setLevel(value)}
+                  selected={level === value}
+                  onClick={() => setLevel(value)}
                   style={{
                     display: "flex",
                     alignItems: "baseline",
@@ -273,21 +286,15 @@ export default function OnboardingPage() {
                     width: "100%",
                     textAlign: "left",
                     padding: "10px 16px",
-                    opacity: available ? 1 : 0.5,
                   }}
                 >
                   <span style={{ fontSize: "24px", flexShrink: 0, minWidth: "32px" }}>
                     {label}
                   </span>
-                  <span style={{ fontSize: "18px" }}>
-                    {description}
-                    {!available && (
-                      <span style={{ marginLeft: "12px", fontSize: "15px" }}>Coming soon</span>
-                    )}
-                  </span>
+                  <span style={{ fontSize: "18px" }}>{description}</span>
                 </PixelButton>
-                );
-              })}
+              ))
+              )}
             </div>
             <PixelDialogActions>
               <PixelButton variant="secondary" onClick={() => setStep(1)}>Back</PixelButton>
@@ -347,7 +354,7 @@ export default function OnboardingPage() {
                     key={cat.id}
                     size="sm"
                     variant="secondary"
-                    selected={topics.includes(cat.id)}
+                    selected={selectedTopics.includes(cat.id)}
                     onClick={() => toggleTopic(cat.id)}
                   >
                     {cat.nameEn}
@@ -360,7 +367,7 @@ export default function OnboardingPage() {
                 nothing at the chosen levels */}
             <div style={{ marginBottom: "16px", display: berlinAvailable ? undefined : "none" }}>
               <PixelCheckbox
-                checked={livesInBerlin}
+                checked={selectedBerlin}
                 onChange={setLivesInBerlin}
                 label={
                   <>
