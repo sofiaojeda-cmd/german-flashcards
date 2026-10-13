@@ -8,7 +8,7 @@ import { Sprite } from "@/components/Sprite";
 import { ReviewCard } from "./ReviewCard";
 import { RatingButtons } from "./RatingButtons";
 import { SessionComplete } from "./SessionComplete";
-import type { Card, ReviewRecord, ReviewQuality } from "@/types";
+import type { Card, Category, ReviewRecord, ReviewQuality } from "@/types";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -95,6 +95,20 @@ export default function ReviewPage() {
   const [state, dispatch] = React.useReducer(reducer, { name: "loading" });
   const dailyGoalRef = React.useRef(20);
   const [showExitDialog, setShowExitDialog] = React.useState(false);
+  // Cards store a topic id. The chip should show what the rest of the app calls
+  // that topic, so "self-improvement" reads as "Inner Life" here too.
+  const [topicNames, setTopicNames] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    fetch("/api/cards/categories.json")
+      .then((r) => r.json())
+      .then((data) =>
+        setTopicNames(
+          Object.fromEntries((data.categories as Category[]).map((c) => [c.id, c.nameEn]))
+        )
+      )
+      .catch(() => setTopicNames({}));
+  }, []);
 
   // Escape key: open exit dialog when reviewing; let Radix handle close when dialog is open
   React.useEffect(() => {
@@ -282,35 +296,31 @@ export default function ReviewPage() {
               <BackArrow onClick={() => setShowExitDialog(true)} />
               <span style={{ color: "var(--text-muted)" }}>Card {index + 1} of {queue.length}</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {/* Level sits next to the topic so a card that feels easy or hard
-                  explains itself without leaving the session. */}
-              <span
-                style={{
-                  color: "var(--text-muted)",
-                  border: "2px solid var(--text-muted)",
-                  padding: "2px 8px",
-                  fontSize: "15px",
-                  fontFamily: "var(--font-pixel)",
-                }}
-                title={`CEFR level ${card.level}`}
-              >
-                {card.level}
-              </span>
+            {/* Topic and level share one chip: they answer the same question,
+                which is what this card is and why it turned up. Cream on the
+                dark page, same tone as the card panels. */}
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "var(--text-light)",
+                border: "2px solid var(--text-light)",
+                padding: "4px 12px",
+                fontSize: "18px",
+                fontFamily: "var(--font-pixel)",
+                whiteSpace: "nowrap",
+              }}
+              title={`CEFR level ${card.level}`}
+            >
               {card.topics[0] && (
-                <span
-                  style={{
-                    color: "var(--text-muted)",
-                    border: "2px solid var(--text-muted)",
-                    padding: "4px 12px",
-                    fontSize: "18px",
-                    fontFamily: "var(--font-pixel)",
-                  }}
-                >
-                  {card.topics[0]}
-                </span>
+                <>
+                  <span>{topicNames[card.topics[0]] ?? card.topics[0]}</span>
+                  <span aria-hidden>-</span>
+                </>
               )}
-            </div>
+              <span>{card.level}</span>
+            </span>
           </div>
           <PixelProgressBar
             value={progress}
