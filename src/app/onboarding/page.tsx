@@ -178,7 +178,8 @@ export default function OnboardingPage() {
         todayDate: new Date().toISOString().slice(0, 10),
       });
 
-      // Seed ALL 470 cards so topic toggling in Settings is lossless.
+      // Seed every card at every level so changing topics or levels later is
+      // lossless: nothing is re-fetched and no review history is lost.
       await seedCards();
 
       // Derive deck membership from the saved selection. Deriving beats applying
@@ -248,7 +249,7 @@ export default function OnboardingPage() {
                 i made this because nothing else fit how i wanted to learn.
               </p>
               <p style={{ fontSize: "18px", color: "var(--text-primary)", margin: 0, lineHeight: 1.6 }}>
-                470 B1 words across topics i actually care about, smart review timing, and an otter to keep you company.
+                over a thousand words from A1 to B1, across topics i actually care about, smart review timing, and an otter to keep you company.
               </p>
               <p style={{ fontSize: "18px", color: "var(--text-primary)", margin: 0, lineHeight: 1.6 }}>
                 if it works for you too, that&apos;s a bonus.

@@ -6,7 +6,7 @@ export type VocabRow = { card: Card; record: ReviewRecord };
  * Returns all active deck cards that the user has engaged with
  * (status = learning | mastered | known), hydrated with static card content.
  * "new" cards are intentionally excluded — this represents the user's collection,
- * not the full universe of 470 cards.
+ * not the full card catalogue.
  */
 export async function getVocabularyList(): Promise<VocabRow[]> {
   const { default: db } = await import("@/lib/db/schema");
