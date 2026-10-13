@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 
-type Variant = "default" | "secondary" | "danger" | "ghost" | "blue";
+type Variant = "default" | "primary" | "secondary" | "danger" | "ghost" | "blue";
 type Size = "sm" | "md" | "lg";
 
 type PixelButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -21,6 +21,14 @@ const variantStyles: Record<Variant, React.CSSProperties> = {
     border: "3px solid var(--button-default-border)",
     boxShadow: "3px 3px 0 var(--shadow)",
   },
+  // The single call to action on a screen. Orange fill, cream label.
+  // Reserve it: two primaries side by side means neither is primary.
+  primary: {
+    backgroundColor: "var(--accent-primary)",
+    color: "var(--text-light)",
+    border: "3px solid var(--button-primary-border)",
+    boxShadow: "3px 3px 0 var(--shadow)",
+  },
   secondary: {
     backgroundColor: "var(--bg-panel-dark)",
     color: "var(--text-light)",
@@ -33,10 +41,12 @@ const variantStyles: Record<Variant, React.CSSProperties> = {
     border: "3px solid var(--button-danger-border)",
     boxShadow: "3px 3px 0 var(--shadow)",
   },
-  // Plain text button — transparent bg, no border/shadow. Use on parchment (--bg-panel).
+  // Plain text button — transparent bg, no border/shadow.
+  // Takes the surrounding text color so it stays legible on parchment
+  // (dark text) and on the page background (cream) without a second variant.
   ghost: {
     backgroundColor: "transparent",
-    color: "var(--text-primary)",
+    color: "inherit",
     border: "none",
     boxShadow: "none",
   },

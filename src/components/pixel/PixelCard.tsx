@@ -24,7 +24,7 @@ export function PixelCard({
           : "3px 3px 0 var(--shadow)",
         color: shade === "dark" ? "var(--text-light)" : "var(--text-primary)",
         // Override --text-muted locally so secondary text stays readable on dark backgrounds
-        ["--text-muted" as string]: shade === "dark" ? "rgba(244, 228, 193, 0.55)" : undefined,
+        ["--text-muted" as string]: shade === "dark" ? "rgba(253, 251, 212, 0.55)" : undefined,
         padding: "16px",
         ...style,
       }}

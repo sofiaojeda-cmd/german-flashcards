@@ -4,7 +4,7 @@
 
 /* ── Color usage rules ───────────────────────────────────────────
    ON DARK BACKGROUNDS (--bg-base, --bg-panel-dark):
-     Primary text  →  --text-light  (#f4e4c1, cream)
+     Primary text  →  --text-light  (#FDFBD4, cream)
      Secondary     →  --text-muted  (#8b6f47)
      Accents/XP    →  --accent-gold (#f0c050)  ← gold is ONLY valid on dark bg
 
@@ -17,19 +17,20 @@
    The other accents (green/red/blue/purple) are semantic indicators
    only (gender colors, ratings, streak) — not general body text.
 
-   ghost variant PixelButton: transparent bg, --text-primary, no border/shadow.
-   Use on parchment (--bg-panel) for safe/cancel actions (e.g. "Keep reviewing").
+   ghost variant PixelButton: transparent bg, inherited text color, no border/shadow.
+   Use for safe/cancel actions (e.g. "Keep reviewing"). It follows whatever
+   surface it sits on, so it reads on parchment and on the page background alike.
 ── */
 
 /* ── Design tokens ───────────────────────────────────────────── */
 :root {
-  --bg-base:        #4a3826;
-  --bg-panel:       #d9b48a;
-  --bg-panel-dark:  #8b5a3c;
+  --bg-base:        #38240D;
+  --bg-panel:       #FDFBD4;
+  --bg-panel-dark:  #713600;
   --border-dark:    #2d1f14;
   --border-mid:     #6b4423;
   --text-primary:   #2d1f14;
-  --text-light:     #f4e4c1;
+  --text-light:     #FDFBD4;
   --text-muted:     #8b6f47;
   --accent-gold:    #f0c050;
   --accent-green:   #6ab04c;
@@ -38,8 +39,14 @@
   --accent-purple:   #8e44ad;
   --accent-mastered: #c07830;
 
+  /* Primary action fill — the one call to action per screen (dashboard CTA).
+     Cream on this reads 4.3:1, which clears AA at the lg button size (28px)
+     but not at body size. Keep it on large buttons only. */
+  --accent-primary: #C05800;
+
   /* ── Component border tokens (darker shade of own fill color) ── */
-  --button-default-border:  #5c3010;
+  --button-default-border:  #4a2200;
+  --button-primary-border:  #7a3700;
   --button-danger-border:   #8b1a11;
   --button-blue-border:     #2a5c8a;
   --input-border:           #b07830;
