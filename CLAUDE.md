@@ -94,6 +94,7 @@ data/cards/*.json  ──(seed on first launch)──▶  IndexedDB (Dexie)
 - Every card carries a `level`. Deck membership is `topic ∩ chosen topics` AND `level ∈ chosen levels`, derived by `recomputeActiveDeck()` in `src/lib/db/seed.ts`. Nothing downstream filters by level — `getDueCards`, the dashboard count and vocab stats all read the `active` flag only.
 - Picking a level in onboarding selects everything below it (`cumulativeLevels()` in `src/lib/levels.ts`). Settings narrows it per level.
 - `categories.json` lists its card files explicitly, per level: `"files": {"B1": ["b1-food.json", "b1-food-extra.json"]}`. Nothing is inferred from the category id. A level appears in the onboarding and Settings pickers only when some category declares a non-empty file list for it.
+- **Card ids are permanent and opaque.** Review history in IndexedDB is keyed by `cardId`, so renaming an id destroys a user's progress on that card. Ids carry the level the card was *created* at, which is why `a1-animals.json` contains ids like `b1-an-031`: those cards were written as B1, found to be A1 vocabulary, and relabelled. The `level` field is the truth, never the id prefix.
 - **Never activate or deactivate deck cards by delta.** Change the stored selection, then call `recomputeActiveDeck()`. The older delta helpers could only subtract, which emptied real users' decks with no way back.
 - `partOfSpeech` values include `"noun (plural)"` and `"noun phrase"` in addition to `"noun"` — gender can be set on all three.
 
