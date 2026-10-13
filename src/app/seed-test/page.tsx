@@ -34,6 +34,7 @@ async function getStats(): Promise<Stats> {
 export default function SeedTestPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
+  const [topics, setTopics] = React.useState<string[]>([]);
   const [stats, setStats] = React.useState<Stats | null>(null);
   const [log, setLog] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState(false);
@@ -47,6 +48,15 @@ export default function SeedTestPage() {
   };
 
   React.useEffect(() => { refresh(); }, []);
+
+  // Topic list comes from categories.json so this page can't drift out of sync
+  // with the real categories the way a hardcoded array did.
+  React.useEffect(() => {
+    fetch("/api/cards/categories.json")
+      .then((r) => r.json())
+      .then((data) => setTopics((data.categories as { id: string }[]).map((c) => c.id)))
+      .catch(() => setTopics([]));
+  }, []);
 
   const handleSeedAll = async () => {
     setBusy(true);
@@ -119,7 +129,7 @@ export default function SeedTestPage() {
           Seed single topic:
         </p>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          {["everyday","food","politics","astrology","animals","fitness","self-improvement","berlin"].map((t) => (
+          {topics.map((t) => (
             <PixelButton key={t} size="sm" variant="secondary" disabled={busy} onClick={() => handleSeedTopic(t)}>
               {t}
             </PixelButton>

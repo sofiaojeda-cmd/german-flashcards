@@ -43,6 +43,31 @@ class GermanFlashcardsDB extends Dexie {
           delete s.level;
         });
     });
+
+    // v4: astrology stops being a category of its own and folds into
+    // self-improvement. Cards already in the DB are never re-fetched (seedCards
+    // is idempotent), so their topics have to be rewritten here, and the stored
+    // topic selection along with them or the cards would land in no deck at all.
+    this.version(4).upgrade(async (tx) => {
+      const retag = (topics: string[] | undefined) =>
+        Array.from(
+          new Set((topics ?? []).map((t) => (t === "astrology" ? "self-improvement" : t)))
+        );
+
+      await tx
+        .table("cards")
+        .toCollection()
+        .modify((c: { topics?: string[] }) => {
+          if (c.topics?.includes("astrology")) c.topics = retag(c.topics);
+        });
+
+      await tx
+        .table("settings")
+        .toCollection()
+        .modify((s: { topics?: string[] }) => {
+          if (s.topics?.includes("astrology")) s.topics = retag(s.topics);
+        });
+    });
   }
 }
 
