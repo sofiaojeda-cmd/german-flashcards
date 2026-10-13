@@ -1,4 +1,4 @@
-import type { ReviewRecord, ReviewQuality } from "@/types";
+import type { Card, ReviewRecord, ReviewQuality } from "@/types";
 
 // ── Fisher-Yates shuffle ─────────────────────────────────────────
 
@@ -163,6 +163,10 @@ export async function getVocabStats(): Promise<{
  * Results are shuffled (Fisher-Yates) before the limit is applied so sessions
  * draw a diverse mix across topics rather than insertion-order batches.
  *
+ * Deck membership is resolved BEFORE the limit. Slicing first and dropping
+ * inactive cards afterwards let dormant topics consume session slots, so a
+ * goal of 20 against a deck where 50 of 470 cards are active returned ~2.
+ *
  * Pass a seeded prng (from mulberry32) in tests for deterministic results.
  */
 export async function getDueCards(limit?: number, prng?: () => number) {
@@ -170,29 +174,30 @@ export async function getDueCards(limit?: number, prng?: () => number) {
 
   const now = Date.now();
 
+  // IndexedDB can't index booleans — filter active status in JS
+  const activeIds = new Set(
+    (await db.deckCards.toArray()).filter((d) => d.active).map((d) => d.cardId)
+  );
+  if (activeIds.size === 0) return [];
+
   const due = await db.reviewRecords
     .where("dueDate")
     .belowOrEqual(now)
     .sortBy("dueDate");
 
-  // Exclude explicitly known cards, then shuffle so the limit draws across topics
-  const filtered = due.filter((r) => r.status !== "known");
-  const shuffled = fisherYatesShuffle(filtered, prng);
+  // Drop known cards and dormant topics, then shuffle so the limit draws across topics
+  const eligible = due.filter(
+    (r) => r.status !== "known" && activeIds.has(r.cardId)
+  );
+  const shuffled = fisherYatesShuffle(eligible, prng);
   const limited = limit !== undefined ? shuffled.slice(0, limit) : shuffled;
 
-  const results = await Promise.all(
-    limited.map(async (record: ReviewRecord) => {
-      const [deckCard, card] = await Promise.all([
-        db.deckCards.get(record.cardId),
-        db.cards.get(record.cardId),
-      ]);
-      if (!deckCard?.active || !card) return null;
-      return { card, record };
-    })
-  );
+  const cards = await db.cards.bulkGet(limited.map((r) => r.cardId));
 
-  return results.filter(
-    (r): r is { card: NonNullable<typeof results[0]>["card"]; record: ReviewRecord } =>
-      r !== null
-  );
+  return limited
+    .map((record: ReviewRecord, i: number) => {
+      const card = cards[i];
+      return card ? { card, record } : null;
+    })
+    .filter((r): r is { card: Card; record: ReviewRecord } => r !== null);
 }

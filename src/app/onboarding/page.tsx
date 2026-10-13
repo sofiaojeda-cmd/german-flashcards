@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PixelButton, PixelDialogActions, PixelStepIndicator, PixelCheckbox } from "@/components/pixel";
 import { Sprite } from "@/components/Sprite";
-import { seedCards, deactivateTopicCards } from "@/lib/db/seed";
+import { seedCards, activateTopicCards, deactivateTopicCards } from "@/lib/db/seed";
 import db from "@/lib/db/schema";
 import type { Category, CEFRLevel, UserSettings } from "@/types";
 
@@ -61,6 +61,7 @@ export default function OnboardingPage() {
   const [dailyGoal, setDailyGoal] = React.useState(20);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [saving, setSaving] = React.useState(false);
+  const [saveError, setSaveError] = React.useState("");
 
   // Load non-Berlin categories for topic chips
   React.useEffect(() => {
@@ -92,6 +93,7 @@ export default function OnboardingPage() {
 
   const handleDone = async () => {
     setSaving(true);
+    setSaveError("");
     try {
       const allTopics = livesInBerlin ? [...new Set([...topics, "berlin"])] : topics;
       const settings: UserSettings = {
@@ -113,15 +115,30 @@ export default function OnboardingPage() {
       });
 
       // Seed ALL 470 cards so topic toggling in Settings is lossless.
-      // All start active: true, then we deactivate the non-selected ones.
       await seedCards();
 
-      const allCategoryIds = [...categories.map((c) => c.id), "berlin"];
+      // Set active state explicitly for every category, both directions.
+      // seedCards is idempotent and returns early once cards exist without
+      // touching their active flags, so a second pass through onboarding that
+      // only deactivated would shrink the deck toward zero and never restore it.
+      const allCategoryIds = [...new Set([...categories.map((c) => c.id), "berlin"])];
       const selectedSet = new Set(allTopics);
-      const toDeactivate = allCategoryIds.filter((id) => !selectedSet.has(id));
-      await Promise.all(toDeactivate.map((id) => deactivateTopicCards(id)));
+      await Promise.all(
+        allCategoryIds.map((id) =>
+          selectedSet.has(id) ? activateTopicCards(id) : deactivateTopicCards(id)
+        )
+      );
+
+      // Never hand the user a dashboard with an empty deck.
+      const activeCount = (await db.deckCards.toArray()).filter((d) => d.active).length;
+      if (activeCount === 0) {
+        setSaveError("Couldn't load your cards. Check your connection and try again.");
+        return;
+      }
 
       router.push("/dashboard");
+    } catch {
+      setSaveError("Couldn't load your cards. Check your connection and try again.");
     } finally {
       setSaving(false);
     }
@@ -345,12 +362,18 @@ export default function OnboardingPage() {
               {dailyGoal} cards/day · ~{Math.round(dailyGoal * 0.5)} min estimated
             </p>
 
+            {saveError && (
+              <p style={{ fontSize: "17px", color: "var(--accent-red)", marginBottom: "16px" }}>
+                {saveError}
+              </p>
+            )}
+
             <PixelDialogActions>
               <PixelButton variant="secondary" onClick={() => setStep(3)} disabled={saving}>
                 Back
               </PixelButton>
               <PixelButton onClick={handleDone} disabled={saving}>
-                {saving ? "Saving…" : "Done"}
+                {saving ? "Saving…" : saveError ? "Try again" : "Done"}
               </PixelButton>
             </PixelDialogActions>
           </>

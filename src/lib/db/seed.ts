@@ -5,7 +5,11 @@ const API_BASE = "/api/cards";
 
 async function fetchCardFile(filename: string): Promise<Card[]> {
   const res = await fetch(`${API_BASE}/${filename}`);
-  if (!res.ok) return [];
+  // A missing "-extra" file is expected (berlin has none), so 404 is not an error.
+  // Anything else is a real failure: returning [] here seeds an empty deck
+  // silently and the user lands on a dashboard with nothing to review.
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error(`Failed to load ${filename} (HTTP ${res.status})`);
   return res.json();
 }
 

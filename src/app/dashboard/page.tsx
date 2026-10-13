@@ -154,6 +154,8 @@ export default function DashboardPage() {
           duePool={dueCount}
           doneToday={reviewedToday}
           goal={dailyGoal}
+          deckSize={vocabStats.total}
+          knownCount={vocabStats.known}
           onStart={() => router.push("/review")}
         />
 
@@ -236,14 +238,36 @@ export default function DashboardPage() {
 
 // ── Sub-components ────────────────────────────────────────────────
 
-type CTAState = { headline: string; button: string; action: "review" | "browse" };
+type CTAState = { headline: string; button: string; action: "review" | "browse" | "settings" };
 
-function resolveCTA(duePool: number, doneToday: number, goal: number): CTAState {
-  if (duePool === 0) {
+function resolveCTA(
+  duePool: number,
+  doneToday: number,
+  goal: number,
+  deckSize: number,
+  knownCount: number
+): CTAState {
+  // An empty deck and a finished deck are opposite states. Collapsing both into
+  // "All caught up!" left a new user staring at a dead end with no way to start.
+  if (deckSize === 0) {
     return {
-      headline: "All caught up!",
-      button: "Browse vocabulary",
-      action: "browse",
+      headline: "Your deck is empty",
+      button: "Pick your topics",
+      action: "settings",
+    };
+  }
+  if (duePool === 0) {
+    if (knownCount === deckSize) {
+      return {
+        headline: "You know every card in your deck",
+        button: "Add more topics",
+        action: "settings",
+      };
+    }
+    return {
+      headline: "All caught up for today!",
+      button: "Add more topics",
+      action: "settings",
     };
   }
   if (doneToday === 0) {
@@ -279,32 +303,39 @@ function CTACard({
   duePool,
   doneToday,
   goal,
+  deckSize,
+  knownCount,
   onStart,
 }: {
   duePool: number;
   doneToday: number;
   goal: number;
+  deckSize: number;
+  knownCount: number;
   onStart: () => void;
 }) {
   const router = useRouter();
-  const cta = resolveCTA(duePool, doneToday, goal);
-  const handleClick = cta.action === "browse" ? () => router.push("/vocabulary") : onStart;
+  const cta = resolveCTA(duePool, doneToday, goal, deckSize, knownCount);
+  const handleClick =
+    cta.action === "browse"
+      ? () => router.push("/vocabulary")
+      : cta.action === "settings"
+        ? () => router.push("/settings")
+        : onStart;
   return (
     <PixelCard
-      shade="dark"
       style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "24px" }}
     >
-      <span style={{ fontSize: "26px", color: "var(--text-light)" }}>{cta.headline}</span>
+      <span style={{ fontSize: "26px", color: "var(--text-primary)" }}>{cta.headline}</span>
       <PixelButton
+        variant="primary"
         size="lg"
         onClick={handleClick}
         style={{
           width: "100%",
           textAlign: "center",
           marginTop: "4px",
-          backgroundColor: "var(--bg-base)",
-          color: "var(--text-light)",
-          border: "4px solid var(--border-dark)",
+          borderWidth: "4px",
         }}
       >
         {cta.button}
