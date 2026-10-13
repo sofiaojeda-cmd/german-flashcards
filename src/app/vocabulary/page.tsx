@@ -287,24 +287,21 @@ export default function VocabularyPage() {
       >
         {/* ── Header ── */}
         <div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "4px",
-            }}
-          >
+          {/* Title and count share one column so the count lines up with the
+              title whatever width the back arrow happens to be. */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
             <BackArrow onClick={() => router.push("/dashboard")} />
-            <h1
-              style={{ margin: 0, fontSize: "32px", color: "var(--text-light)", lineHeight: 1 }}
-            >
-              Your vocabulary
-            </h1>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <h1
+                style={{ margin: 0, fontSize: "32px", color: "var(--text-light)", lineHeight: 1 }}
+              >
+                Your vocabulary
+              </h1>
+              <p style={{ margin: 0, fontSize: "18px", color: "var(--text-muted)" }}>
+                {collected} words in your collection
+              </p>
+            </div>
           </div>
-          <p style={{ margin: "4px 0 0 44px", fontSize: "18px", color: "var(--text-muted)" }}>
-            {collected} words in your collection
-          </p>
         </div>
 
         {/* ── Search ── */}

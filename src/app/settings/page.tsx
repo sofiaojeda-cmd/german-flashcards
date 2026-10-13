@@ -502,7 +502,9 @@ export default function SettingsPage() {
               padding: 0,
               cursor: "pointer",
               fontSize: "17px",
-              color: "var(--text-primary)",
+              // Gold, not the orange primary: this link sits on the dark page
+              // background, where orange reads at 3.25:1 and gold at 8.7:1.
+              color: "var(--accent-gold)",
               fontFamily: "var(--font-pixel)",
               textDecoration: "underline",
               textAlign: "left",

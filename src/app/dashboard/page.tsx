@@ -154,16 +154,13 @@ export default function DashboardPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
             <span style={{ fontSize: "32px", color: "var(--text-primary)" }}>Guten Tag!</span>
             <div style={{ fontSize: "20px" }}>
-              <span style={{ color: "var(--text-muted)" }}>Level {level}: </span>
+              <span style={{ color: "var(--accent-primary)" }}>Level {level}: </span>
               <span style={{ color: "var(--text-primary)" }}>{getTitleForLevel(level)}</span>
             </div>
             {streakDays > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Sprite name="streak-flame" size={24} alt="" />
-                <span style={{ fontSize: "18px", color: "var(--text-muted)" }}>
-                  {streakDays} day streak
-                </span>
-              </div>
+              <span style={{ fontSize: "20px", color: "var(--accent-primary)" }}>
+                {streakDays} day streak
+              </span>
             )}
             <GearButton onClick={() => router.push("/settings")} />
           </div>
