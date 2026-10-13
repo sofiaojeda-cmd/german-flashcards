@@ -648,6 +648,22 @@ function CardRow({ row, expanded, onToggle, onAction }: CardRowProps) {
           </span>
         </span>
 
+        {/* Level sits before the status badge, fixed width so the badges stay in
+            one column however long the word is. */}
+        <span
+          style={{
+            color: "var(--text-muted)",
+            fontSize: "15px",
+            flexShrink: 0,
+            minWidth: "26px",
+            textAlign: "right",
+            letterSpacing: "0.5px",
+          }}
+          title={`CEFR level ${card.level}`}
+        >
+          {card.level}
+        </span>
+
         <span
           style={{
             backgroundColor: STATUS_BADGE[record.status]?.bg ?? "var(--bg-panel-dark)",
