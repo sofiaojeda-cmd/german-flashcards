@@ -104,6 +104,66 @@ export async function seedCards(options: SeedOptions = {}): Promise<{ seeded: nu
 }
 
 /**
+ * Bump whenever the shipped card data changes in a way existing devices need.
+ * syncCardDefinitions() runs once per device per bump.
+ */
+export const CARD_CONTENT_VERSION = 2;
+
+/**
+ * Re-write card definitions on this device from the shipped JSON, and give any
+ * card that is new here its deck entry and SRS state.
+ *
+ * seedCards() deliberately skips cards it has already seen, which protects
+ * review history but also means a content fix never reaches anyone who already
+ * opened the app. This closes that gap: only the `cards` table is overwritten.
+ * Deck membership lives in deckCards and progress lives in reviewRecords, and
+ * neither is rewritten for a card that already exists, so corrections and new
+ * cards arrive without costing anyone their streak.
+ */
+export async function syncCardDefinitions(): Promise<{ updated: number; added: number }> {
+  const categories = await fetchCategories();
+  const cardArrays = await Promise.all(
+    categories.map((cat) => Promise.all(filesFor(cat).map(fetchCardFile)))
+  );
+  const incoming = Array.from(
+    new Map(cardArrays.flat(2).map((c) => [c.id, c])).values()
+  );
+  if (incoming.length === 0) return { updated: 0, added: 0 };
+
+  const now = Date.now();
+  let added = 0;
+
+  await db.transaction("rw", db.cards, db.deckCards, db.reviewRecords, async () => {
+    const knownCards = new Set(await db.cards.toCollection().primaryKeys());
+    const knownDeck = new Set(await db.deckCards.toCollection().primaryKeys());
+    const knownRecords = new Set(await db.reviewRecords.toCollection().primaryKeys());
+
+    added = incoming.filter((c) => !knownCards.has(c.id)).length;
+
+    await db.cards.bulkPut(incoming);
+
+    const newDeckCards = incoming
+      .filter((c) => !knownDeck.has(c.id))
+      .map((c) => ({ cardId: c.id, active: false, addedAt: now }));
+    if (newDeckCards.length > 0) await db.deckCards.bulkAdd(newDeckCards);
+
+    const newRecords = incoming
+      .filter((c) => !knownRecords.has(c.id))
+      .map((c) => ({
+        cardId: c.id,
+        easeFactor: 2.5,
+        interval: 0,
+        repetitions: 0,
+        dueDate: now,
+        status: "new" as const,
+      }));
+    if (newRecords.length > 0) await db.reviewRecords.bulkAdd(newRecords);
+  });
+
+  return { updated: incoming.length - added, added };
+}
+
+/**
  * Derive `active` for every deck card from the current selection:
  *
  *   active = the card carries one of the chosen topics

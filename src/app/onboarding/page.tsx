@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PixelButton, PixelDialogActions, PixelStepIndicator, PixelCheckbox } from "@/components/pixel";
 import { Sprite } from "@/components/Sprite";
-import { seedCards, recomputeActiveDeck } from "@/lib/db/seed";
+import { seedCards, recomputeActiveDeck, CARD_CONTENT_VERSION } from "@/lib/db/seed";
 import { cumulativeLevels } from "@/lib/levels";
 import db from "@/lib/db/schema";
 import type { Category, CEFRLevel, UserSettings } from "@/types";
@@ -167,6 +167,7 @@ export default function OnboardingPage() {
         livesInBerlin: selectedBerlin,
         audioEnabled: false,
         onboardingComplete: true,
+        contentVersion: CARD_CONTENT_VERSION,
       };
       await db.settings.put({ id: "user", ...settings });
       await db.progress.put({

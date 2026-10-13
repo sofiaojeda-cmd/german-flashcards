@@ -27,6 +27,26 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     async function load() {
+      // Content arrives on a device once and then never refreshes, so a card
+      // corrected or added after someone's first visit would never reach them.
+      // One sync per content version closes that, and leaves progress alone.
+      const { CARD_CONTENT_VERSION, syncCardDefinitions, recomputeActiveDeck } =
+        await import("@/lib/db/seed");
+      const stored = await db.settings.get("user");
+      if (stored && stored.contentVersion !== CARD_CONTENT_VERSION) {
+        try {
+          await syncCardDefinitions();
+          await recomputeActiveDeck({
+            topics: stored.topics ?? [],
+            levels: stored.levels ?? ["B1"],
+          });
+          await db.settings.update("user", { contentVersion: CARD_CONTENT_VERSION });
+        } catch {
+          // A failed sync leaves the device on the older content and retries on
+          // the next visit. Better than blocking the dashboard behind a fetch.
+        }
+      }
+
       const todayStr = new Date().toISOString().slice(0, 10);
       const now = Date.now();
       // IndexedDB can't index booleans — filter active status in JS

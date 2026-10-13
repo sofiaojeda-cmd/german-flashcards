@@ -71,6 +71,8 @@ export type UserSettings = {
   livesInBerlin: boolean;
   audioEnabled: boolean;
   onboardingComplete: boolean;
+  /** Card content version this device last synced. See CARD_CONTENT_VERSION. */
+  contentVersion?: number;
 };
 
 export type UserProgress = {
