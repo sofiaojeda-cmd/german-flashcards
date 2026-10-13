@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PixelButton, PixelCard, PixelCheckbox, PixelDialog, PixelDialogActions } from "@/components/pixel";
 import { Sprite } from "@/components/Sprite";
-import type { Category } from "@/types";
+import type { CEFRLevel, Category } from "@/types";
+import { CEFR_ORDER } from "@/lib/levels";
 import type { SettingsData } from "@/lib/db/settings";
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -21,6 +22,8 @@ export default function SettingsPage() {
   const [localTopics, setLocalTopics] = React.useState<string[]>([]);
   const [topicError, setTopicError] = React.useState("");
   const [topicBusy, setTopicBusy] = React.useState(false);
+  const [levelError, setLevelError] = React.useState("");
+  const [levelBusy, setLevelBusy] = React.useState(false);
   const [showResetDialog, setShowResetDialog] = React.useState(false);
   const [resetting, setResetting] = React.useState(false);
   const [exportMsg, setExportMsg] = React.useState("");
@@ -58,6 +61,39 @@ export default function SettingsPage() {
     setData((d) => d && { ...d, dailyGoal: goal });
     const { updateDailyGoal } = await import("@/lib/db/settings");
     await updateDailyGoal(goal);
+  };
+
+  // A level is offered only once some category ships a card file for it.
+  const availableLevels = React.useMemo(() => {
+    const found = new Set(
+      categories.flatMap((c) =>
+        Object.entries(c.files ?? {})
+          .filter(([, files]) => files && files.length > 0)
+          .map(([level]) => level)
+      )
+    );
+    return CEFR_ORDER.filter((l) => found.has(l));
+  }, [categories]);
+
+  const handleLevelToggle = async (level: CEFRLevel, checked: boolean) => {
+    if (!data) return;
+    const next = checked
+      ? [...data.levels, level]
+      : data.levels.filter((l) => l !== level);
+
+    if (next.length === 0) {
+      setLevelError("At least one level required.");
+      return;
+    }
+    setLevelError("");
+    setLevelBusy(true);
+    try {
+      const { setLevels } = await import("@/lib/db/settings");
+      const stored = await setLevels(next);
+      setData((d) => d && { ...d, levels: stored });
+    } finally {
+      setLevelBusy(false);
+    }
   };
 
   const handleTopicToggle = async (topicId: string, checked: boolean) => {
@@ -217,7 +253,6 @@ export default function SettingsPage() {
 
         {/* ── Profile ── */}
         <Section title="Profile">
-          <InfoRow label="Level" value="B1" note="More levels coming soon" />
           <InfoRow label="Streak" value={`${data.streakDays} day${data.streakDays !== 1 ? "s" : ""}`} />
           <InfoRow label="Total XP" value={`${data.xp.toLocaleString()} XP`} />
         </Section>
@@ -246,6 +281,33 @@ export default function SettingsPage() {
                 </PixelButton>
               ))}
             </div>
+          </div>
+
+          {/* Levels */}
+          <div style={{ marginBottom: "20px" }}>
+            <p style={{ fontSize: "20px", color: "var(--text-primary)", margin: "0 0 4px" }}>
+              Levels in your deck
+            </p>
+            <p style={{ fontSize: "17px", color: "var(--text-muted)", margin: "0 0 12px" }}>
+              Reaching B1 doesn&apos;t mean every A1 word stuck. Keep the lower ones on
+              until they do.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {availableLevels.map((level) => (
+                <PixelCheckbox
+                  key={level}
+                  checked={data.levels.includes(level)}
+                  disabled={levelBusy}
+                  onChange={(checked) => handleLevelToggle(level, checked)}
+                  label={level}
+                />
+              ))}
+            </div>
+            {levelError && (
+              <p style={{ fontSize: "16px", color: "var(--accent-red)", margin: "8px 0 0" }}>
+                {levelError}
+              </p>
+            )}
           </div>
 
           {/* Topics */}

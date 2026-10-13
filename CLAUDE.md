@@ -38,7 +38,8 @@ data/cards/*.json  ──(seed on first launch)──▶  IndexedDB (Dexie)
 ### Key directories
 - `data/cards/` — 16 hand-curated JSON files (categories.json + 15 B1 deck files). **Do not regenerate or modify card data without confirming with the user.**
 - `src/types/index.ts` — canonical types: `Card`, `Category`, `ReviewRecord`, `UserSettings`, `UserProgress`
-- `src/lib/sm2.ts` — SM-2 spaced repetition algorithm (with unit tests in `sm2.test.ts`)
+- `src/lib/srs/sm2.ts` — SM-2 spaced repetition algorithm (unit tests in `sm2.test.ts`)
+- `src/lib/levels.ts` — CEFR ordering and cumulative level selection
 - `src/lib/gamification.ts` — XP formula, level thresholds, streak logic
 - `src/lib/db/` — Dexie schema and seed loader
 - `src/components/pixel/` — base component library: `PixelButton`, `PixelCard`, `PixelInput`, `PixelProgressBar`, `PixelDialog`
@@ -48,12 +49,12 @@ data/cards/*.json  ──(seed on first launch)──▶  IndexedDB (Dexie)
 ### Pages (App Router)
 | Route | Purpose |
 |---|---|
-| `/` | Redirects to `/dashboard` or `/onboarding` based on `localStorage.onboardingComplete` |
+| `/` | Redirects to `/dashboard` or `/onboarding` based on `settings.onboardingComplete` in IndexedDB |
 | `/onboarding` | 3-step level/topics/goal flow (shown once) |
 | `/dashboard` | Streak, XP, daily goal, "Start Review" CTA |
 | `/review` | Full-screen card flip review session |
-| `/decks` | Browse categories, toggle topics |
-| `/browse` | Table view of all cards with SRS state |
+| `/vocabulary` | Table view of all cards with SRS state, filterable by topic and status |
+| `/seed-test` | Dev-only: Reset DB and Seed All, for testing a fresh state |
 | `/settings` | Change level, topics, daily goal; reset progress |
 | `/components` | Pixel component demo (not linked from nav) |
 
@@ -90,8 +91,10 @@ data/cards/*.json  ──(seed on first launch)──▶  IndexedDB (Dexie)
 ## Card data rules
 
 - **Never invent or guess German genders.** Always look up the article in the JSON files.
-- All 470 cards are B1 level. CEFR filtering in v1: show B1 cards to all users with a subtle "above your level" notice for A1/A2 users.
-- `categories.json` only has a `file` field for the base deck. The seeding logic infers the extra file as `b1-{category}-extra.json` (berlin has no extra file).
+- Every card carries a `level`. Deck membership is `topic ∩ chosen topics` AND `level ∈ chosen levels`, derived by `recomputeActiveDeck()` in `src/lib/db/seed.ts`. Nothing downstream filters by level — `getDueCards`, the dashboard count and vocab stats all read the `active` flag only.
+- Picking a level in onboarding selects everything below it (`cumulativeLevels()` in `src/lib/levels.ts`). Settings narrows it per level.
+- `categories.json` lists its card files explicitly, per level: `"files": {"B1": ["b1-food.json", "b1-food-extra.json"]}`. Nothing is inferred from the category id. A level appears in the onboarding and Settings pickers only when some category declares a non-empty file list for it.
+- **Never activate or deactivate deck cards by delta.** Change the stored selection, then call `recomputeActiveDeck()`. The older delta helpers could only subtract, which emptied real users' decks with no way back.
 - `partOfSpeech` values include `"noun (plural)"` and `"noun phrase"` in addition to `"noun"` — gender can be set on all three.
 
 ## Gamification formulas

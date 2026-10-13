@@ -35,7 +35,8 @@ export type Category = {
   nameEn: string;
   description: string;
   icon: string;
-  file: string;
+  /** Card files per CEFR level. A level with no entry has no content yet. */
+  files: Partial<Record<CEFRLevel, string[]>>;
 };
 
 export type VocabStatus = "new" | "learning" | "mastered" | "known";
@@ -63,7 +64,8 @@ export type DeckCard = {
 };
 
 export type UserSettings = {
-  level: CEFRLevel;
+  /** Every CEFR level whose cards belong in the deck. */
+  levels: CEFRLevel[];
   topics: string[];       // category IDs
   dailyGoal: number;      // 10 | 20 | 30 | 50
   livesInBerlin: boolean;

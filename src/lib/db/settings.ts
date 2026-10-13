@@ -4,10 +4,10 @@
  */
 
 import type { CEFRLevel, Category } from "@/types";
-import { deactivateTopicCards, activateTopicCards, seedCards } from "./seed";
+import { recomputeActiveDeck, seedCards } from "./seed";
 
 export type SettingsData = {
-  level: CEFRLevel;
+  levels: CEFRLevel[];
   topics: string[];
   livesInBerlin: boolean;
   dailyGoal: number;
@@ -25,7 +25,7 @@ export async function getSettings(): Promise<SettingsData | null> {
   ]);
   if (!settings) return null;
   return {
-    level: settings.level,
+    levels: settings.levels ?? ["B1"],
     topics: settings.topics ?? [],
     livesInBerlin: settings.livesInBerlin ?? false,
     dailyGoal: settings.dailyGoal ?? 20,
@@ -55,12 +55,6 @@ export async function toggleTopic(
     throw new Error("at-least-one");
   }
 
-  if (active) {
-    await activateTopicCards(topicId);
-  } else {
-    await deactivateTopicCards(topicId);
-  }
-
   const newTopics = active
     ? [...new Set([...currentTopics, topicId])]
     : currentTopics.filter((t) => t !== topicId);
@@ -70,7 +64,32 @@ export async function toggleTopic(
   if (topicId === "berlin") updates.livesInBerlin = active;
   await db.settings.update("user", updates as Parameters<typeof db.settings.update>[1]);
 
+  const stored = await db.settings.get("user");
+  await recomputeActiveDeck({ topics: newTopics, levels: stored?.levels ?? ["B1"] });
+
   return newTopics;
+}
+
+/**
+ * Set which CEFR levels belong in the deck.
+ * Throws if the selection is empty — a deck needs at least one level.
+ * Returns the stored selection, in CEFR order.
+ */
+export async function setLevels(levels: CEFRLevel[]): Promise<CEFRLevel[]> {
+  if (levels.length === 0) {
+    throw new Error("at-least-one");
+  }
+
+  const { sortLevels } = await import("@/lib/levels");
+  const ordered = sortLevels(levels);
+
+  const { default: db } = await import("./schema");
+  await db.settings.update("user", { levels: ordered });
+
+  const stored = await db.settings.get("user");
+  await recomputeActiveDeck({ topics: stored?.topics ?? [], levels: ordered });
+
+  return ordered;
 }
 
 /** Wipe all review progress without deleting cards or changing active flags. */
@@ -106,6 +125,7 @@ export async function resetAllProgress(): Promise<void> {
  */
 export async function backfillMissingTopics(): Promise<void> {
   const { default: db } = await import("./schema");
+  let seeded = false;
 
   const res = await fetch("/api/cards/categories.json");
   if (!res.ok) return;
@@ -122,8 +142,19 @@ export async function backfillMissingTopics(): Promise<void> {
       if (count > 0) continue; // Already seeded — nothing to do
     }
 
-    // Topic is missing from DB entirely or has cards but no deckCards
-    // Seed it as inactive so users can enable it in Settings without losing history
-    await seedCards({ topics: [cat.id], active: false });
+    // Topic is missing from DB entirely or has cards but no deckCards — seed it.
+    // seedCards lands cards inactive; the recompute below decides membership.
+    await seedCards({ topics: [cat.id] });
+    seeded = true;
+  }
+
+  if (!seeded) return;
+
+  const settings = await db.settings.get("user");
+  if (settings) {
+    await recomputeActiveDeck({
+      topics: settings.topics ?? [],
+      levels: settings.levels ?? ["B1"],
+    });
   }
 }

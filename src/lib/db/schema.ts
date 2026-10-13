@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Card, DeckCard, ReviewRecord, UserSettings, UserProgress } from "@/types";
+import type { Card, CEFRLevel, DeckCard, ReviewRecord, UserSettings, UserProgress } from "@/types";
 
 // Single-row tables use a fixed primary key "user"
 type StoredSettings = UserSettings & { id: "user" };
@@ -27,6 +27,21 @@ class GermanFlashcardsDB extends Dexie {
     // v2: index status for vocab stats queries
     this.version(2).stores({
       reviewRecords: "cardId, dueDate, lastReviewed, status",
+    });
+
+    // v3: settings.level (one CEFR level) becomes settings.levels (a selection).
+    // Existing users keep their level and gain everything below it.
+    this.version(3).upgrade(async (tx) => {
+      const { cumulativeLevels } = await import("@/lib/levels");
+      await tx
+        .table("settings")
+        .toCollection()
+        .modify((s: Record<string, unknown>) => {
+          if (Array.isArray(s.levels)) return;
+          const old = s.level as CEFRLevel | undefined;
+          s.levels = cumulativeLevels(old ?? "B1");
+          delete s.level;
+        });
     });
   }
 }

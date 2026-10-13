@@ -1,13 +1,13 @@
 import db from "./schema";
-import type { Card, Category, UserSettings } from "@/types";
+import type { Card, CEFRLevel, Category, UserSettings } from "@/types";
 
 const API_BASE = "/api/cards";
 
 async function fetchCardFile(filename: string): Promise<Card[]> {
   const res = await fetch(`${API_BASE}/${filename}`);
-  // A missing "-extra" file is expected (berlin has none), so 404 is not an error.
-  // Anything else is a real failure: returning [] here seeds an empty deck
-  // silently and the user lands on a dashboard with nothing to review.
+  // A 404 is the one acceptable miss: a declared file that hasn't shipped yet.
+  // Anything else is a real failure and must not be swallowed — a silent []
+  // seeds an empty deck and drops the user on a dashboard with nothing to review.
   if (res.status === 404) return [];
   if (!res.ok) throw new Error(`Failed to load ${filename} (HTTP ${res.status})`);
   return res.json();
@@ -21,30 +21,39 @@ async function fetchCategories(): Promise<Category[]> {
   return data.categories as Category[];
 }
 
-/** Load and merge base + extra cards for a single category. */
-async function loadCategoryCards(categoryId: string, baseFile: string): Promise<Card[]> {
-  const [base, extra] = await Promise.all([
-    fetchCardFile(baseFile),
-    // Extra file is inferred; berlin has none — 404 returns []
-    fetchCardFile(`b1-${categoryId}-extra.json`),
-  ]);
-  return [...base, ...extra];
+/** Every card file a category declares, across all its levels. */
+function filesFor(cat: Category): string[] {
+  return Object.values(cat.files ?? {}).flat();
+}
+
+/** The CEFR levels that have at least one card file today. */
+export async function availableLevels(): Promise<CEFRLevel[]> {
+  const categories = await fetchCategories();
+  const { CEFR_ORDER } = await import("@/lib/levels");
+  const found = new Set<string>();
+  for (const cat of categories) {
+    for (const [level, files] of Object.entries(cat.files ?? {})) {
+      if (files && files.length > 0) found.add(level);
+    }
+  }
+  return CEFR_ORDER.filter((l) => found.has(l));
 }
 
 export type SeedOptions = {
-  /** Category IDs to seed. Pass undefined to seed all categories. */
+  /** Category IDs to seed. Omit to seed every category. */
   topics?: string[];
-  /** Whether seeded deckCards are active. Defaults to true.
-   *  Pass false when backfilling dormant topics that the user hasn't picked yet. */
-  active?: boolean;
 };
 
 /**
- * Seeds card data into IndexedDB on first launch (or when topics are added).
- * Idempotent — safe to call multiple times; existing records are not overwritten.
+ * Seed card data into IndexedDB. Seeds every level a category declares, so that
+ * changing topics or levels later is lossless — nothing has to be re-fetched and
+ * no review history is lost.
  *
- * For v1 level filtering: all 470 cards are B1. We seed all and apply a
- * "above your level" notice in the UI rather than excluding cards.
+ * Idempotent: cards already in the DB are left alone.
+ *
+ * Deck membership is NOT decided here. New cards land inactive and
+ * recomputeActiveDeck() derives `active` from the user's settings, so every
+ * caller must run it afterwards.
  */
 export async function seedCards(options: SeedOptions = {}): Promise<{ seeded: number }> {
   const categories = await fetchCategories();
@@ -53,17 +62,15 @@ export async function seedCards(options: SeedOptions = {}): Promise<{ seeded: nu
     ? categories.filter((c) => options.topics!.includes(c.id))
     : categories;
 
-  // Fetch all card files in parallel
   const cardArrays = await Promise.all(
-    targetCategories.map((cat) => loadCategoryCards(cat.id, cat.file))
+    targetCategories.map((cat) => Promise.all(filesFor(cat).map(fetchCardFile)))
   );
 
-  const allCards = cardArrays.flat();
+  // Deduplicate by id (files shouldn't overlap but guard anyway)
+  const uniqueCards = Array.from(
+    new Map(cardArrays.flat(2).map((c) => [c.id, c])).values()
+  );
 
-  // Deduplicate by id (extra files shouldn't overlap but guard anyway)
-  const uniqueCards = Array.from(new Map(allCards.map((c) => [c.id, c])).values());
-
-  // Only insert cards not already in the DB
   const existingIds = new Set(
     await db.cards.where("id").anyOf(uniqueCards.map((c) => c.id)).primaryKeys()
   );
@@ -74,15 +81,13 @@ export async function seedCards(options: SeedOptions = {}): Promise<{ seeded: nu
   const now = Date.now();
 
   await db.transaction("rw", db.cards, db.deckCards, db.reviewRecords, async () => {
-    // Insert card definitions
     await db.cards.bulkAdd(newCards);
 
-    // Mark all new cards as active (or inactive for backfill seeding)
     await db.deckCards.bulkAdd(
-      newCards.map((c) => ({ cardId: c.id, active: options.active ?? true, addedAt: now }))
+      newCards.map((c) => ({ cardId: c.id, active: false, addedAt: now }))
     );
 
-    // Create initial SM-2 state — dueDate = now so cards appear immediately
+    // Initial SM-2 state — dueDate = now so cards appear as soon as they're active
     await db.reviewRecords.bulkAdd(
       newCards.map((c) => ({
         cardId: c.id,
@@ -99,36 +104,39 @@ export async function seedCards(options: SeedOptions = {}): Promise<{ seeded: nu
 }
 
 /**
- * Deactivates cards belonging to removed topics without deleting review history.
- * Called when the user removes a topic in Settings.
+ * Derive `active` for every deck card from the current selection:
+ *
+ *   active = the card carries one of the chosen topics
+ *            AND its CEFR level is one of the chosen levels
+ *
+ * This replaces the old activateTopicCards/deactivateTopicCards pair, which
+ * applied deltas on top of whatever was already stored. A pass that only ever
+ * deactivated could shrink the deck to nothing with no path back. Deriving the
+ * whole flag from settings every time makes that failure impossible.
+ *
+ * Review history is never touched — only deck membership.
  */
-export async function deactivateTopicCards(topicId: string): Promise<void> {
-  const cards = await db.cards.where("topics").equals(topicId).toArray();
-  const cardIds = cards.map((c) => c.id);
-  await db.deckCards
-    .where("cardId")
-    .anyOf(cardIds)
-    .modify({ active: false });
-}
+export async function recomputeActiveDeck(selection: {
+  topics: string[];
+  levels: CEFRLevel[];
+}): Promise<{ active: number }> {
+  const topics = new Set(selection.topics);
+  const levels = new Set<CEFRLevel>(selection.levels);
 
-/**
- * Reactivates cards for a topic that was re-added in Settings.
- * For cards not yet in the DB (new topic), calls seedCards instead.
- */
-export async function activateTopicCards(topicId: string): Promise<void> {
-  const cards = await db.cards.where("topics").equals(topicId).toArray();
+  const cards = await db.cards.toArray();
+  const wanted = new Set(
+    cards
+      .filter((c) => c.topics.some((t) => topics.has(t)) && levels.has(c.level))
+      .map((c) => c.id)
+  );
 
-  if (cards.length === 0) {
-    // Topic has never been seeded — seed it now
-    await seedCards({ topics: [topicId] });
-    return;
-  }
+  await db.deckCards.toCollection().modify((d) => {
+    d.active = wanted.has(d.cardId);
+  });
 
-  const cardIds = cards.map((c) => c.id);
-  await db.deckCards
-    .where("cardId")
-    .anyOf(cardIds)
-    .modify({ active: true });
+  // IndexedDB can't index booleans — count in JS
+  const active = (await db.deckCards.toArray()).filter((d) => d.active).length;
+  return { active };
 }
 
 /** Initialize default settings and progress if they don't exist. */

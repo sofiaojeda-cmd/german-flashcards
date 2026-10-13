@@ -4,16 +4,21 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PixelButton, PixelDialogActions, PixelStepIndicator, PixelCheckbox } from "@/components/pixel";
 import { Sprite } from "@/components/Sprite";
-import { seedCards, activateTopicCards, deactivateTopicCards } from "@/lib/db/seed";
+import { seedCards, recomputeActiveDeck } from "@/lib/db/seed";
+import { cumulativeLevels } from "@/lib/levels";
 import db from "@/lib/db/schema";
 import type { Category, CEFRLevel, UserSettings } from "@/types";
 
 // ── Level data ───────────────────────────────────────────────────
 // Only B1 content is available. B2/C1 shown as roadmap but disabled.
-const LEVELS: { value: CEFRLevel; label: string; description: string; available: boolean }[] = [
-  { value: "B1", label: "B1", description: "Intermediate — navigate most daily situations", available: true },
-  { value: "B2", label: "B2", description: "Upper intermediate — fluent interaction with native speakers", available: false },
-  { value: "C1", label: "C1", description: "Advanced — precise, fluid expression on complex topics", available: false },
+// Availability is derived from categories.json at render time: a level becomes
+// selectable the moment any category ships a card file for it.
+const LEVELS: { value: CEFRLevel; label: string; description: string }[] = [
+  { value: "A1", label: "A1", description: "Beginner — everyday words and simple phrases" },
+  { value: "A2", label: "A2", description: "Elementary — routine exchanges on familiar topics" },
+  { value: "B1", label: "B1", description: "Intermediate — navigate most daily situations" },
+  { value: "B2", label: "B2", description: "Upper intermediate — fluent interaction with native speakers" },
+  { value: "C1", label: "C1", description: "Advanced — precise, fluid expression on complex topics" },
 ];
 
 const DAILY_GOALS = [10, 20, 30, 50];
@@ -60,6 +65,7 @@ export default function OnboardingPage() {
   const [livesInBerlin, setLivesInBerlin] = React.useState(false);
   const [dailyGoal, setDailyGoal] = React.useState(20);
   const [categories, setCategories] = React.useState<Category[]>([]);
+  const [levelsWithContent, setLevelsWithContent] = React.useState<Set<string>>(new Set());
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState("");
 
@@ -68,8 +74,20 @@ export default function OnboardingPage() {
     fetch("/api/cards/categories.json")
       .then((r) => r.json())
       .then((data) => {
-        const nonBerlin = (data.categories as Category[]).filter((c) => c.id !== "berlin");
-        setCategories(nonBerlin);
+        const all = data.categories as Category[];
+        // Levels come from every category, Berlin included — the topic chips
+        // below exclude Berlin because it has its own checkbox, not because it
+        // has no content.
+        setLevelsWithContent(
+          new Set(
+            all.flatMap((c) =>
+              Object.entries(c.files ?? {})
+                .filter(([, files]) => files && files.length > 0)
+                .map(([level]) => level)
+            )
+          )
+        );
+        setCategories(all.filter((c) => c.id !== "berlin"));
       });
   }, []);
 
@@ -97,7 +115,8 @@ export default function OnboardingPage() {
     try {
       const allTopics = livesInBerlin ? [...new Set([...topics, "berlin"])] : topics;
       const settings: UserSettings = {
-        level,
+        // Picking a level opts you into everything below it; Settings narrows it.
+        levels: cumulativeLevels(level),
         topics: allTopics,
         dailyGoal,
         livesInBerlin,
@@ -117,20 +136,15 @@ export default function OnboardingPage() {
       // Seed ALL 470 cards so topic toggling in Settings is lossless.
       await seedCards();
 
-      // Set active state explicitly for every category, both directions.
-      // seedCards is idempotent and returns early once cards exist without
-      // touching their active flags, so a second pass through onboarding that
-      // only deactivated would shrink the deck toward zero and never restore it.
-      const allCategoryIds = [...new Set([...categories.map((c) => c.id), "berlin"])];
-      const selectedSet = new Set(allTopics);
-      await Promise.all(
-        allCategoryIds.map((id) =>
-          selectedSet.has(id) ? activateTopicCards(id) : deactivateTopicCards(id)
-        )
-      );
+      // Derive deck membership from the saved selection. Deriving beats applying
+      // deltas: there is no sequence of onboarding passes that can leave the deck
+      // empty, because the flag is recomputed from settings every time.
+      const { active: activeCount } = await recomputeActiveDeck({
+        topics: allTopics,
+        levels: settings.levels,
+      });
 
       // Never hand the user a dashboard with an empty deck.
-      const activeCount = (await db.deckCards.toArray()).filter((d) => d.active).length;
       if (activeCount === 0) {
         setSaveError("Couldn't load your cards. Check your connection and try again.");
         return;
@@ -206,10 +220,12 @@ export default function OnboardingPage() {
           <>
             <h2 style={{ fontSize: "32px", marginBottom: "8px" }}>Choose your level</h2>
             <p style={{ fontSize: "18px", color: "var(--text-muted)", marginBottom: "24px" }}>
-              B1 content available now. Higher levels coming soon.
+              Your level includes everything below it. Narrow it later in Settings.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "24px" }}>
-              {LEVELS.map(({ value, label, description, available }) => (
+              {LEVELS.map(({ value, label, description }) => {
+                const available = levelsWithContent.has(value);
+                return (
                 <PixelButton
                   key={value}
                   variant="secondary"
@@ -238,7 +254,8 @@ export default function OnboardingPage() {
                     )}
                   </span>
                 </PixelButton>
-              ))}
+                );
+              })}
             </div>
             <PixelDialogActions>
               <PixelButton variant="secondary" onClick={() => setStep(1)}>Back</PixelButton>
